@@ -70,17 +70,28 @@ async function main() {
             } else {
                 snapshot.forEach(doc => {
                     const data = doc.data();
+                    const userId = doc.id;
 
                     // If targetBotId is set, ONLY process that user.
-                    // If not set, process ALL (default/legacy behavior).
-                    if (targetBotId && doc.id !== targetBotId) {
-                        return; // Skip non-matching users
+                    if (targetBotId && userId !== targetBotId) {
+                        return;
                     }
 
+                    // MERGE LOGIC: Try to find local JSON file for this user to get telegramChatId
+                    let fileData = {};
+                    try {
+                        const filePath = path.join(usersDir, userId + '.json');
+                        if (fs.existsSync(filePath)) {
+                            fileData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                        }
+                    } catch (err) { console.warn("Local file read warn:", err.message); }
+
+                    // Merge: Cloud Data takes precedence for params, but File Data provides fallback for IDs
                     users.push({
-                        id: doc.id,
+                        id: userId,
                         source: 'firebase',
-                        ...data
+                        ...fileData,  // 1. Base from file (contains telegramChatId)
+                        ...data       // 2. Override with Cloud (contains latest params/seed)
                     });
                 });
                 console.log(`✅ Loaded ${users.length} user(s) from Firestore. (Target: ${targetBotId || "ALL"})`);
@@ -129,16 +140,16 @@ async function main() {
         let params = {};
 
         if (user.source === 'firebase') {
-            // DB Structure
+            // DB Structure (with potential merged file props)
             params = {
-                initialCapital: parseFloat(user.userSeed || 10000),
+                initialCapital: parseFloat(user.userSeed || user.initialCapital || 10000), // Updated to fallback to initialCapital
                 startDate: getStartDate(user),
                 endDate: new Date().toISOString().split('T')[0],
-                safe: user.safe || {},
-                offensive: user.offensive || {},
-                rebalance: user.rebalance || {},
-                feeRate: 0, // Default 0 if missing
-                useRealTier: user.useRealTier || false // Add real tier support
+                safe: user.safe || user.params?.safe || {},
+                offensive: user.offensive || user.params?.offensive || {},
+                rebalance: user.rebalance || user.params?.rebalance || {},
+                feeRate: 0,
+                useRealTier: user.useRealTier || false
             };
         } else {
             // File Structure
@@ -155,16 +166,6 @@ async function main() {
         }
 
         const chatId = user.tgChatId || user.telegramChatId;
-        // Note: app_v2 now saves tgChatId to localStorage, need to save to DB?
-        // app_v2 saveToCloud saves 'defaults' + injections + userSeed.
-        // It does NOT save tgChatId currently.
-        // Alert: User needs to save TG ID to DB?
-        // Or we use ENV?
-        // Usually TG ID is private. 
-        // If user provided Firebase Config, maybe they can store TG ID in DB?
-        // For now, if missing in DB, we rely on ENV? 
-        // Or we assume user manually added it to DB?
-        // Let's assume user.tgChatId exists (we can instruct user to add it or update app_v2 to save it).
 
         if (!chatId) {
             console.log(`Skipping ${user.id}: No Telegram Chat ID found.`);
@@ -173,7 +174,7 @@ async function main() {
 
         // Run Logic
         // Pass injections!
-        const injections = user.injections || [];
+        const injections = user.injections || user.history?.injections || []; // Safe fallback
 
         try {
             const result = runSimulation(SOXL_DATA, QQQ_DATA, params, injections);
@@ -222,7 +223,7 @@ async function main() {
 
             msg += `\n💰 <b>자산 요약</b>\n`;
             msg += `총자산: $${finalBal}\n`;
-            msg += `시드: $${seedDisp}\n`;
+            msg += `시드: ${seedDisp}\n`;
             msg += `현재 티어: ${currentTier}T\n`;
 
             // Injections Info?
