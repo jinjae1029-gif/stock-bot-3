@@ -1,7 +1,8 @@
 import yfinance as yf
 import json
 import os
-from datetime import datetime
+from datetime import datetime, time
+import pytz
 
 # 데이터 다운로드 (최대 기간) - Ticker.history 사용 (더 안정적)
 print("Fetching Data...")
@@ -9,12 +10,45 @@ print("Fetching Data...")
 soxl = yf.Ticker("SOXL").history(start="2010-01-01", auto_adjust=False)
 qqq = yf.Ticker("QQQ").history(start="2010-01-01", auto_adjust=False)
 
-# 데이터 포맷 변환 함수
+def is_market_open_or_today_incomplete(last_date):
+    """
+    Checks if the given last_date is 'today' and if the market is likely still open or just closed but unconfirmed.
+    US Market Closes at 16:00 ET.
+    """
+    try:
+        # NY timezone
+        ny_tz = pytz.timezone('America/New_York')
+        now_ny = datetime.now(ny_tz)
+        
+        # Check if last_date matches today in NY
+        last_date_str = last_date.strftime('%Y-%m-%d')
+        today_ny_str = now_ny.strftime('%Y-%m-%d')
+        
+        if last_date_str == today_ny_str:
+            # If it's today, check time.
+            # If Before 16:15 ET (give 15 min buffer for data settlement), consider it incomplete/live.
+            market_close_time = time(16, 15)
+            if now_ny.time() < market_close_time:
+                print(f"⚠️ Last candle ({last_date_str}) is LIVE (Current NY Time: {now_ny.time()}). Dropping it.")
+                return True
+        return False
+    except Exception as e:
+        print(f"Time check error: {e}")
+        return False
+
+# 데이터 포맷 변환 함수 (+ 안전장치 추가)
 def format_data(df):
     data = []
     if df.empty:
         return data
-        
+
+    # 1. 안전장치: 마지막 데이터가 '진행 중(장중)'이라면 제거
+    if not df.empty:
+        last_idx = df.index[-1]
+        # Check if we should drop
+        if is_market_open_or_today_incomplete(last_idx):
+             df = df.iloc[:-1] # Drop last row
+
     # 인덱스(날짜)를 직접 순회
     for date_idx, row in df.iterrows():
         # 날짜 포맷 (YYYY-MM-DD)
