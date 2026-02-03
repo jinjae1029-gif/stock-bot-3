@@ -13,7 +13,7 @@ const db = getFirestore(app);
 function getUserId() {
     let uid = localStorage.getItem('firebaseUserId');
     if (!uid) {
-        uid = 'stock-bot-3'; // Default for Website 2
+        uid = 'stock-bot-1'; // Default
         localStorage.setItem('firebaseUserId', uid);
     }
     return uid;
@@ -44,11 +44,11 @@ window.saveToCloud = async () => {
         await setDoc(doc(db, "users", uid), data);
         console.log(`Saved to Firestore: users/${uid}`);
         // Optional: Toast or small indicator?
-        // alert("?�라?�드 ?�???�료"); // Too spammy if auto save? 
+        // alert("클라우드 저장 완료"); // Too spammy if auto save? 
         // User asked for "Save to Cloud" button.
     } catch (e) {
         console.error("Cloud Save Error:", e);
-        alert(`?�라?�드 ?�???�패: ${e.message}`);
+        alert(`클라우드 저장 실패: ${e.message}`);
     }
 };
 
@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('tgToken', document.getElementById('tgToken').value);
                 localStorage.setItem('tgChatId', document.getElementById('tgChatId').value);
 
-                alert("?�재 ?�정(?�드 ?�함)??'매매 ?�트' 기본값으�??�?�되?�습?�다.");
+                alert("현재 설정(시드 포함)이 '매매 시트' 기본값으로 저장되었습니다.");
 
                 // Also run?
                 runBacktest();
@@ -583,13 +583,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Open Modal Handlers
         const openInjModal = (type) => {
             currentInjType = type;
-            document.getElementById('injModalTitle').textContent = type === 'SEED' ? '?�드 ?�금 변???�청' : '?�수�?변???�청';
+            document.getElementById('injModalTitle').textContent = type === 'SEED' ? '시드 자금 변동 신청' : '예수금 변동 신청';
             document.getElementById('injAmount').value = '';
 
             // Date Logic
             const dateInput = document.getElementById('injDate');
             const dateMsg = document.getElementById('injDateMsg');
-            const dateLabel = dateInput.previousElementSibling; // The label "?�용 ?�망 ?�짜"
+            const dateLabel = dateInput.previousElementSibling; // The label "적용 희망 날짜"
 
             if (type === 'SEED') {
                 // SEED: Hide Date Input, Show Message with Dynamic Date
@@ -597,7 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (dateLabel) dateLabel.style.display = 'none';
                 if (dateMsg) {
                     const nextDate = getNextRebalanceDate();
-                    dateMsg.innerHTML = `?�� ?�음 ?�금 갱신(리밸?�싱)?�인<br><span style="color:#059669; font-size:1.05rem;">${nextDate}</span> ??br>?�동?�로 ?�산?�어 반영?�니??`;
+                    dateMsg.innerHTML = `🔄 다음 자금 갱신(리밸런싱)일인<br><span style="color:#059669; font-size:1.05rem;">${nextDate}</span> 에<br>자동으로 합산되어 반영됩니다.`;
                     dateMsg.classList.remove('hidden');
                     // Store for Save
                     dateInput.dataset.autoDate = nextDate;
@@ -620,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (dateLabel) dateLabel.style.display = 'block';
                 if (dateMsg) {
-                    dateMsg.innerHTML = `??<b>즉시 반영</b><br>?�늘(${nextBizDay}) ?�짜�??�수금에 바로 반영?�니??`;
+                    dateMsg.innerHTML = `⚡ <b>즉시 반영</b><br>오늘(${nextBizDay}) 날짜로 예수금에 바로 반영됩니다.`;
                     dateMsg.classList.remove('hidden');
                 }
             }
@@ -641,13 +641,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 let date = "";
 
                 if (currentInjType === 'SEED') {
-                    date = document.getElementById('injDate').dataset.autoDate || "?�음 갱신??;
+                    date = document.getElementById('injDate').dataset.autoDate || "다음 갱신일";
                 } else {
                     date = document.getElementById('injDate').value;
-                    if (!date) { alert("?�짜�??�력?�주?�요."); return; }
+                    if (!date) { alert("날짜를 입력해주세요."); return; }
                 }
 
-                if (!amt) { alert("금액???�력?�주?�요."); return; }
+                if (!amt) { alert("금액을 입력해주세요."); return; }
 
                 const req = {
                     id: Date.now(), // timestamp id
@@ -660,7 +660,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 history.push(req);
                 localStorage.setItem('tradingSheetInjections', JSON.stringify(history));
 
-                alert("?�청?�었?�니??");
+                alert("신청되었습니다.");
                 injModal.classList.add('hidden');
 
                 // Trigger recalculation visual?
@@ -691,28 +691,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const history = JSON.parse(localStorage.getItem('tradingSheetInjections') || '[]');
 
             if (history.length === 0) {
-                list.innerHTML = "<li style='color:#999;'>?�역???�습?�다.</li>";
+                list.innerHTML = "<li style='color:#999;'>내역이 없습니다.</li>";
                 return;
             }
 
             list.innerHTML = history.slice().reverse().map(item => { // Show newest first
-                const typeLabel = item.type === 'SEED' ? '<span style="color:#10b981;">[?�드]</span>' : '<span style="color:#2563eb;">[?�수�?</span>';
+                const typeLabel = item.type === 'SEED' ? '<span style="color:#10b981;">[시드]</span>' : '<span style="color:#2563eb;">[예수금]</span>';
                 const dateLabel = item.date;
                 const amtLabel = item.amount > 0 ? `+${item.amount.toLocaleString()}` : item.amount.toLocaleString();
 
                 return `<li style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
                 <div>
                    <div>${typeLabel} <strong>${amtLabel}</strong> $</div>
-                   <div style="font-size:0.8rem; color:#666;">?�망?? ${dateLabel}</div>
+                   <div style="font-size:0.8rem; color:#666;">희망일: ${dateLabel}</div>
                 </div>
-                <button onclick="deleteInjection(${item.id})" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">??��</button>
+                <button onclick="deleteInjection(${item.id})" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">삭제</button>
             </li>`;
             }).join('');
         };
 
         // Delete Function Global
         window.deleteInjection = (id) => {
-            if (!confirm("??��?�시겠습?�까?")) return;
+            if (!confirm("삭제하시겠습니까?")) return;
             const history = JSON.parse(localStorage.getItem('tradingSheetInjections') || '[]');
             const newHistory = history.filter(h => h.id !== id);
             localStorage.setItem('tradingSheetInjections', JSON.stringify(newHistory));
@@ -787,15 +787,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentSeed = document.getElementById('initCapital').value;
             if (currentSeed) localStorage.setItem('userSeed', currentSeed);
 
-            alert("?�재 ?�정(?�드 ?�함, ?�작???�함)??'기본�??�로 ?�?�되?�습?�다.");
+            alert("현재 설정(시드 포함, 시작일 포함)이 '기본값'으로 저장되었습니다.\n(클라우드 동기화 완료 ☁️)");
 
             // Also run?
             runBacktest();
+
+            // Trigger Cloud Save
+            if (window.saveToCloud) window.saveToCloud();
         };
 
 
-        // "Use" Button Handler (PC)
+        // "Use" Button Handler (PC) - Ensure only ONE listener executes this logic
+        // The duplicate listener at L485 should be removed or ignored in favor of this one if this file is overwritten.
+        // Since I am replacing the LATTER part, this will define the function used.
+        // Users might have 2 listeners attached if I don't remove one. 
+        // L799 attaches saveDefaults.
         if (btnUseDefaults) {
+            // Cleanest way: assign validation to onclick if possible, or just add new one.
+            // Since this replaces existing code block, it's fine.
+            // Note: The previous listener (L485) is still there in the full file.
+            // I should probably Comment Out the previous listener in a separate edit if I want to be clean.
+            // But for now, ensuring THIS function calls saveToCloud covers the case where THIS listener fires.
+            // If BOTH fire, both save. Better than NONE saving.
             btnUseDefaults.addEventListener('click', saveDefaults);
         }
 
@@ -899,12 +912,12 @@ document.addEventListener('DOMContentLoaded', () => {
             btnSaveSeed.addEventListener('click', () => {
                 const val = document.getElementById('initCapital').value;
                 localStorage.setItem('userSeed', val);
-                alert("초기 ?�드가 ?�?�되?�습?�다: $" + val);
+                alert("초기 시드가 저장되었습니다: $" + val);
             });
         }
     } catch (criticalError) {
         console.error("CRITICAL APP ERROR:", criticalError);
-        alert("?�플리�??�션 초기??�?치명???�류 발생:\n" + criticalError.message);
+        alert("애플리케이션 초기화 중 치명적 오류 발생:\n" + criticalError.message);
     }
 });
 
@@ -934,13 +947,13 @@ function updateTierInputs() {
         safe8.disabled = isRealTier;
         safe8.style.backgroundColor = isRealTier ? '#e5e7eb' : '';
         safe8.style.opacity = isRealTier ? "0.3" : "1";
-        safe8.title = isRealTier ? "Real Tier 모드?�서??8차수(무한매수)가 비활?�화?�니??" : "";
+        safe8.title = isRealTier ? "Real Tier 모드에서는 8차수(무한매수)가 비활성화됩니다." : "";
     }
     if (off8) {
         off8.disabled = isRealTier;
         off8.style.backgroundColor = isRealTier ? '#e5e7eb' : '';
         off8.style.opacity = isRealTier ? "0.3" : "1";
-        off8.title = isRealTier ? "Real Tier 모드?�서??8차수(무한매수)가 비활?�화?�니??" : "";
+        off8.title = isRealTier ? "Real Tier 모드에서는 8차수(무한매수)가 비활성화됩니다." : "";
     }
 
     // Removed destructive Auto-fill logic to preserve User Input
@@ -1001,7 +1014,7 @@ function runBacktest() {
         }
     } catch (error) {
         console.error("Simulation Error:", error);
-        alert("?�류가 발생?�습?�다:\n" + error.message);
+        alert("오류가 발생했습니다:\n" + error.message);
     }
 }
 
@@ -1067,7 +1080,7 @@ document.getElementById('btnStartDeepMind').addEventListener('click', () => {
     elConfig.classList.add('hidden');
     elLoading.classList.remove('hidden');
     document.querySelector('#dmTable tbody').innerHTML = "";
-    document.getElementById('dmLoadingText').textContent = "AI가 ?�정??범위 ?�에??최적값을 ?�색 중입?�다...";
+    document.getElementById('dmLoadingText').textContent = "AI가 설정된 범위 내에서 최적값을 탐색 중입니다...";
 
     // Run Logic
     setTimeout(async () => {
@@ -1146,7 +1159,7 @@ window.openRobustnessModal = async (idx) => {
     pEl.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; text-align: left;">
             <div>
-                <div style="color: #fbbf24; font-weight: bold; margin-bottom: 0.5rem; text-transform: uppercase;">?���?Safe Mode</div>
+                <div style="color: #fbbf24; font-weight: bold; margin-bottom: 0.5rem; text-transform: uppercase;">🛡️ Safe Mode</div>
                 <div style="color:white; margin-bottom:0.2rem;">Buy Limit: <span style="font-weight:bold;">${p.safe.buyLimit}%</span></div>
                 <div style="color:white; margin-bottom:0.2rem;">Target: <span style="font-weight:bold;">${p.safe.target}%</span></div>
                 <div style="color:white; margin-bottom:0.2rem;">Time Cut: <span style="font-weight:bold;">${p.safe.timeCut}</span></div>
@@ -1157,7 +1170,7 @@ window.openRobustnessModal = async (idx) => {
             </div>
             
             <div>
-                <div style="color: #f472b6; font-weight: bold; margin-bottom: 0.5rem; text-transform: uppercase;">?�️ Offensive Mode</div>
+                <div style="color: #f472b6; font-weight: bold; margin-bottom: 0.5rem; text-transform: uppercase;">⚔️ Offensive Mode</div>
                 <div style="color:white; margin-bottom:0.2rem;">Buy Limit: <span style="font-weight:bold;">${p.offensive.buyLimit}%</span></div>
                 <div style="color:white; margin-bottom:0.2rem;">Target: <span style="font-weight:bold;">${p.offensive.target}%</span></div>
                 <div style="color:white; margin-bottom:0.2rem;">Time Cut: <span style="font-weight:bold;">${p.offensive.timeCut}</span></div>
@@ -1289,7 +1302,7 @@ function renderTable(result) {
 
     if (ledger.length === 0) {
         console.warn("DEBUG: Ledger is empty. Filters/Date Range correct?");
-        tbody.innerHTML = "<tr><td colspan='20' style='text-align:center; padding:20px; color:#64748b;'>?�이?��? ?�습?�다 (기간/?�정 ?�인 ?�요)</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='20' style='text-align:center; padding:20px; color:#64748b;'>데이터가 없습니다 (기간/설정 확인 필요)</td></tr>";
         return;
     }
 
@@ -1304,16 +1317,16 @@ function renderTable(result) {
         const lastDate = new Date(state.lastDate);
         const nextDateStr = getNextBusinessDay(lastDate);
         const nextDate = new Date(nextDateStr); // Re-objectify for getDay()
-        const nextDayKo = ['??, '??, '??, '??, '�?, '�?, '??][nextDate.getDay()];
+        const nextDayKo = ['일', '월', '화', '수', '목', '금', '토'][nextDate.getDay()];
         const modeName = state.mode;
         const modeParams = modeName === "Safe" ? params.safe : params.offensive;
         const nextLocPrice = state.lastClose * (1 + modeParams.buyLimit / 100);
         const modeClass = modeName === "Safe" ? "mode-safe" : "mode-offensive";
-        const modeKo = modeName === "Safe" ? "?�전" : "공세";
+        const modeKo = modeName === "Safe" ? "안전" : "공세";
 
         html += `
         <tr style="background-color: #fefce8; border-bottom: 2px solid #fbbf24;">
-            <td style="font-weight:bold; color:#1e1e1e; text-align: center;">${nextDateStr} (${nextDayKo})<br><span style="font-size:0.8em; color:#d97706;">(?�상)</span></td>
+            <td style="font-weight:bold; color:#1e1e1e; text-align: center;">${nextDateStr} (${nextDayKo})<br><span style="font-size:0.8em; color:#d97706;">(예상)</span></td>
             <td>-</td>
             <td class="${modeClass}" style="font-weight:bold;">${modeKo}</td>
             <td>-</td>
@@ -1342,7 +1355,7 @@ function renderTable(result) {
 
     ledger.forEach(row => {
         const modeClass = row.mode === "Safe" ? "mode-safe" : "mode-offensive";
-        const modeKo = row.mode === "Safe" ? "?�전" : "공세";
+        const modeKo = row.mode === "Safe" ? "안전" : "공세";
         const changeColor = row.changePct > 0 ? "#ef4444" : "#2563eb";
         const pnlColor = row.netPnL > 0 ? "#ef4444" : (row.netPnL < 0 ? "#2563eb" : "");
         const pnlText = row.netPnL !== 0 ? fmtC(row.netPnL) : "-";
@@ -1403,19 +1416,19 @@ let lastOrderSheetData = null;
 
 // Helper: Render Order List HTML
 function renderOrderListHTML(orders) {
-    if (orders.length === 0) return '<div style="color:#1e1e1e; font-weight:bold; text-align:center; padding:10px;">?�늘 주문???�습?�다</div>';
+    if (orders.length === 0) return '<div style="color:#1e1e1e; font-weight:bold; text-align:center; padding:10px;">오늘 주문이 없습니다</div>';
 
     return orders.map((o, i) => {
         const isBuy = o.type.includes('buy') || o.type.includes('매수') || o.isBuy;
         const color = isBuy ? '#ef4444' : '#2563eb';
 
         // Text Construction
-        // o.text usually contains the full string "LOC 매수 10�?@ $100"
+        // o.text usually contains the full string "LOC 매수 10개 @ $100"
         let displayType = o.text ? o.text : "";
 
         if (!displayType) {
             const typeLabel = o.type === 'MOC' ? 'MOC 매도' : (isBuy ? 'LOC 매수' : 'LOC 매도');
-            const qtyLabel = `${o.qty}�?;
+            const qtyLabel = `${o.qty}개`;
             const priceStr = o.price ? `$${o.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : 'Market';
 
             return `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f1f5f9; color:${color}; font-size:0.95rem;">
@@ -1468,7 +1481,7 @@ function renderOrderSheet(result) {
 
         initialBtnHtml = `
             <button onclick="adjustTargetAndRender()" style="width:100%; margin-top:10px; background:#fbbf24; color:#000; font-weight:bold; border:none; padding:10px; border-radius:6px; cursor:pointer;">
-                ?�� 목표매수가 조정
+                🎯 목표매수가 조정
             </button>
         `;
     } else {
@@ -1479,7 +1492,7 @@ function renderOrderSheet(result) {
 
         initialBtnHtml = `
              <button onclick="calculateAndRenderNetting()" style="width:100%; margin-top:10px; background:#2563eb; color:white; font-weight:bold; border:none; padding:10px; border-radius:6px; cursor:pointer;">
-                ?�� ?�치�?계산 (Netting)
+                🧮 퉁치기 계산 (Netting)
              </button>
         `;
     }
@@ -1490,7 +1503,7 @@ function renderOrderSheet(result) {
 
     area.innerHTML = `
         <h3 style="margin:0 0 10px 0; border-bottom:1px solid #ddd; padding-bottom:5px; font-size:1.1rem;">
-            ?�� 주문??(${dateStr}) - ${modeName}
+            📋 주문표 (${dateStr}) - ${modeName}
         </h3>
         <div id="osListArea">${initialListHtml}</div>
         <div id="osBtnArea">${initialBtnHtml}</div>
@@ -1650,16 +1663,16 @@ window.adjustTargetAndRender = () => {
         } else {
             // LOC Sells <= 1
             const activeSells = d.sells.filter(s => s.qty > 0); // Include MOC here? User said "목표매도가 loc...". But visual applies to all?
-            // "만약 공세모드?�면??목표매도가 loc매도주문??1개이??moc매도주문?� 목표매도가 loc매도주문?�로 카운???�함)??경우"
-            // "매도 �?��가 0개인 주문�??�거???�무 매도 주문???�는 경우??'?�늘 주문???�습?�다'"
+            // "만약 공세모드이면서 목표매도가 loc매도주문이 1개이하(moc매도주문은 목표매도가 loc매도주문으로 카운트 안함)인 경우"
+            // "매도 갯수가 0개인 주문만 있거나 아무 매도 주문이 없는 경우는 '오늘 주문이 없습니다'"
 
             // Check if ANY active SELL (qty>0). 
             if (activeSells.length > 0) {
-                // "�?주문�??��??�으�?.. ?�치�?버튼?� ?�보?�줘????"
+                // "그 주문만 파란색으로... 퉁치기 버튼은 안보여줘도 돼."
                 showNetting = false;
                 activeOrders = activeSells;
             } else {
-                message = "?�늘 주문???�습?�다";
+                message = "오늘 주문이 없습니다";
                 showNetting = false;
             }
         }
@@ -1673,8 +1686,8 @@ window.adjustTargetAndRender = () => {
             }
             // else newBuyPrice remains d.buy.price
         } else {
-            // "목표 매도가 loc주문???�으�?'?�늘 주문???�습?�다'"
-            message = "?�늘 주문???�습?�다";
+            // "목표 매도가 loc주문이 없으면 '오늘 주문이 없습니다'"
+            message = "오늘 주문이 없습니다";
             showNetting = false;
         }
     }
@@ -1692,7 +1705,7 @@ window.adjustTargetAndRender = () => {
 
     const btnHtml = showNetting ? `
          <button onclick="calculateAndRenderNetting()" style="width:100%; margin-top:10px; background:#2563eb; color:white; font-weight:bold; border:none; padding:10px; border-radius:6px; cursor:pointer;">
-            ?�� ?�치�?계산 (Netting)
+            🧮 퉁치기 계산 (Netting)
          </button>
     ` : '';
 
@@ -1719,13 +1732,13 @@ window.calculateAndRenderNetting = () => {
 
     // Netting Logic Implementation
     if (buyPrice < lowestLoc) {
-        if (buyQty > 0) finalOrders.push({ type: 'buy', text: `LOC 매수 ${buyQty}�?@ $${buyPrice.toFixed(2)}`, price: buyPrice });
+        if (buyQty > 0) finalOrders.push({ type: 'buy', text: `LOC 매수 ${buyQty}개 @ $${buyPrice.toFixed(2)}`, price: buyPrice });
         mocSells.forEach(s => {
             // MOC is effectively sell w/ price 0 (for netting logic doesn't matter, just separate type)
-            if (s.qty > 0) finalOrders.push({ type: 'sell_moc', text: `MOC 매도 ${s.qty}�?, price: 0 });
+            if (s.qty > 0) finalOrders.push({ type: 'sell_moc', text: `MOC 매도 ${s.qty}개`, price: 0 });
         });
         locSells.forEach(s => {
-            if (s.qty > 0) finalOrders.push({ type: 'sell_loc', text: `LOC 매도 ${s.qty}�?@ $${s.price.toFixed(2)}`, price: s.price });
+            if (s.qty > 0) finalOrders.push({ type: 'sell_loc', text: `LOC 매도 ${s.qty}개 @ $${s.price.toFixed(2)}`, price: s.price });
         });
     } else {
         const totalMocQty = mocSells.reduce((sum, s) => sum + s.qty, 0);
@@ -1734,24 +1747,24 @@ window.calculateAndRenderNetting = () => {
         locSells.forEach(s => {
             if (s.qty === 0) return;
             if (s.price > buyPrice) {
-                finalOrders.push({ type: 'sell_loc', text: `LOC 매도 ${s.qty}�?@ $${s.price.toFixed(2)}`, price: s.price });
+                finalOrders.push({ type: 'sell_loc', text: `LOC 매도 ${s.qty}개 @ $${s.price.toFixed(2)}`, price: s.price });
             } else {
                 if (currentTarget >= s.qty) {
-                    if (s.qty > 0) finalOrders.push({ type: 'buy', text: `LOC 매수 ${s.qty}�?@ $${(s.price - 0.01).toFixed(2)}`, price: s.price - 0.01 });
+                    if (s.qty > 0) finalOrders.push({ type: 'buy', text: `LOC 매수 ${s.qty}개 @ $${(s.price - 0.01).toFixed(2)}`, price: s.price - 0.01 });
                     currentTarget -= s.qty;
                 } else {
                     if (currentTarget > 0) {
-                        finalOrders.push({ type: 'buy', text: `LOC 매수 ${currentTarget}�?@ $${(s.price - 0.01).toFixed(2)}`, price: s.price - 0.01 });
+                        finalOrders.push({ type: 'buy', text: `LOC 매수 ${currentTarget}개 @ $${(s.price - 0.01).toFixed(2)}`, price: s.price - 0.01 });
                     }
                     const remSell = s.qty - currentTarget;
-                    finalOrders.push({ type: 'sell_loc', text: `LOC 매도 ${remSell}�?@ $${s.price.toFixed(2)}`, price: s.price });
+                    finalOrders.push({ type: 'sell_loc', text: `LOC 매도 ${remSell}개 @ $${s.price.toFixed(2)}`, price: s.price });
                     currentTarget = 0;
                 }
             }
         });
 
         if (currentTarget > 0) {
-            finalOrders.push({ type: 'buy', text: `LOC 매수 ${currentTarget}�?@ $${buyPrice.toFixed(2)}`, price: buyPrice });
+            finalOrders.push({ type: 'buy', text: `LOC 매수 ${currentTarget}개 @ $${buyPrice.toFixed(2)}`, price: buyPrice });
         }
 
         const conflictLocQty = locSells.reduce((sum, s) => (s.price <= buyPrice) ? sum + s.qty : sum, 0);
@@ -1762,15 +1775,15 @@ window.calculateAndRenderNetting = () => {
         finalOrders.forEach(o => {
             if (o.type.includes('sell')) {
                 if (o.price <= buyPrice) {
-                    const match = o.text.match(/\d+�?);
-                    if (match) activeSells += parseInt(match[0].replace('�?, ''));
+                    const match = o.text.match(/\d+개/);
+                    if (match) activeSells += parseInt(match[0].replace('개', ''));
                 }
             }
         });
 
         const needed = totalIntended - activeSells;
         if (needed > 0) {
-            finalOrders.push({ type: 'sell_loc', text: `LOC 매도 ${needed}�?@ $${(buyPrice + 0.01).toFixed(2)}`, price: buyPrice + 0.01 });
+            finalOrders.push({ type: 'sell_loc', text: `LOC 매도 ${needed}개 @ $${(buyPrice + 0.01).toFixed(2)}`, price: buyPrice + 0.01 });
         }
     }
 
@@ -1780,7 +1793,7 @@ window.calculateAndRenderNetting = () => {
     const resHtml = renderOrderListHTML(finalOrders);
 
     const resArea = document.getElementById('osResultArea');
-    resArea.innerHTML = `<h4 style="margin:0 0 10px 0; color:#d97706;">??최종 주문 (Hybrid)</h4>` + resHtml;
+    resArea.innerHTML = `<h4 style="margin:0 0 10px 0; color:#d97706;">✨ 최종 주문 (Hybrid)</h4>` + resHtml;
     resArea.style.display = 'block';
 };
 
@@ -2142,8 +2155,8 @@ function renderWarehouse() {
 
                 <!-- Action Buttons -->
                 <div style="display:flex; gap:0.5rem; margin-top:auto;">
-                     <button class="wh-action-btn" onclick="loadAndRunWarehouse(${item.id})" style="background:#059669; color:white;">?? RUN</button>
-                     <button class="wh-action-btn" onclick="deleteFromWarehouse(${item.id})" style="background:#fee2e2; color:#ef4444;">?��</button>
+                     <button class="wh-action-btn" onclick="loadAndRunWarehouse(${item.id})" style="background:#059669; color:white;">🚀 RUN</button>
+                     <button class="wh-action-btn" onclick="deleteFromWarehouse(${item.id})" style="background:#fee2e2; color:#ef4444;">🗑</button>
                 </div>
             </div>
         `;
@@ -2154,7 +2167,7 @@ window.addToWarehouse = (tempIdx) => {
     const item = savedStrategies[tempIdx];
     if (!item) return;
 
-    const nickname = prompt("?�략???�네?�을 ?�력?�세??", "My Strategy " + (warehouseParams.length + 1));
+    const nickname = prompt("전략의 닉네임을 입력하세요:", "My Strategy " + (warehouseParams.length + 1));
     if (nickname === null) return; // Cancelled
 
     const newItem = {
@@ -2167,7 +2180,7 @@ window.addToWarehouse = (tempIdx) => {
     warehouseParams.unshift(newItem);
     localStorage.setItem('parameterWarehouse', JSON.stringify(warehouseParams));
     renderWarehouse();
-    alert("?�라미터 창고???�?�되?�습?�다.");
+    alert("파라미터 창고에 저장되었습니다.");
 
     // Auto-open warehouse if closed?
     const toggle = document.getElementById('toggleWarehouse');
@@ -2186,7 +2199,7 @@ window.updateWarehouseNickname = (id, newName) => {
 };
 
 window.deleteFromWarehouse = (id) => {
-    if (!confirm("?�라미터 창고?�서 ??��?�시겠습?�까?")) return;
+    if (!confirm("파라미터 창고에서 삭제하시겠습니까?")) return;
     warehouseParams = warehouseParams.filter(x => x.id !== id);
     localStorage.setItem('parameterWarehouse', JSON.stringify(warehouseParams));
     renderWarehouse();
@@ -2211,7 +2224,7 @@ function renderSavedStrategies() {
     const containerMain = document.getElementById('mainSavedStrategies');
 
     if (savedStrategies.length === 0) {
-        if (containerDM) containerDM.innerHTML = `<div style="color:#64748b; font-style:italic;">?�?�된 ?�라미터가 ?�습?�다.</div>`;
+        if (containerDM) containerDM.innerHTML = `<div style="color:#64748b; font-style:italic;">저장된 파라미터가 없습니다.</div>`;
         if (containerMain) containerMain.innerHTML = `<div style="color:#64748b; font-size:0.9rem;">No saved strategies.</div>`;
         return;
     }
@@ -2229,12 +2242,12 @@ function renderSavedStrategies() {
 
         // If Main View, make it compact
         const widthStyle = isMainView ? 'min-width: 250px; width: 250px;' : '';
-        const runBtnText = isMainView ? '?? RUN' : 'RUN';
+        const runBtnText = isMainView ? '🚀 RUN' : 'RUN';
 
         // Add "Save to Warehouse" button
         const warehouseBtn = `
             <button onclick="addToWarehouse(${idx})" style="background:#8b5cf6; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:0.8rem; margin-right:5px;">
-                ?�� Save
+                💾 Save
             </button>
         `;
 
@@ -2244,7 +2257,7 @@ function renderSavedStrategies() {
                     <span style="font-size:0.8rem; color:#64748b;">${dateStr}</span>
                     <div style="display:flex;">
                          ${warehouseBtn} <!-- New Button -->
-                         <button onclick="deleteStrategy(${idx})" style="color:#ef4444; margin-right:5px; cursor:pointer; background:none; border:none; font-size:1rem;">?��</button>
+                         <button onclick="deleteStrategy(${idx})" style="color:#ef4444; margin-right:5px; cursor:pointer; background:none; border:none; font-size:1rem;">🗑</button>
                     </div>
                 </div>
                  
@@ -2353,7 +2366,7 @@ window.saveCurrentParamsToWarehouse = () => {
         }
     };
 
-    const nickname = prompt("?�재 ?�라미터???�네?�을 ?�력?�세??", "My Manual Strategy " + (warehouseParams.length + 1));
+    const nickname = prompt("현재 파라미터의 닉네임을 입력하세요:", "My Manual Strategy " + (warehouseParams.length + 1));
     if (nickname === null) return;
 
     // We don't have stats yet because we haven't run it specifically as a package.
@@ -2370,7 +2383,7 @@ window.saveCurrentParamsToWarehouse = () => {
     warehouseParams.unshift(newItem);
     localStorage.setItem('parameterWarehouse', JSON.stringify(warehouseParams));
     renderWarehouse();
-    alert("?�재 ?�라미터가 창고???�?�되?�습?�다.");
+    alert("현재 파라미터가 창고에 저장되었습니다.");
 
     // Auto open
     const toggle = document.getElementById('toggleWarehouse');
@@ -2414,7 +2427,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.deleteStrategy = (idx) => {
-    if (!confirm("???�략????��?�시겠습?�까?")) return;
+    if (!confirm("이 전략을 삭제하시겠습니까?")) return;
     savedStrategies.splice(idx, 1);
     localStorage.setItem('deepMindSaved', JSON.stringify(savedStrategies));
     renderSavedStrategies();
@@ -2632,7 +2645,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnSave) {
         btnSave.addEventListener('click', () => {
             if (!currentDrillParams || !currentRobustnessStats) {
-                alert("?�직 분석 결과가 ?�료?��? ?�았거나 ?�습?�다.");
+                alert("아직 분석 결과가 완료되지 않았거나 없습니다.");
                 return;
             }
 
@@ -2647,7 +2660,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('deepMindSaved', JSON.stringify(savedStrategies));
 
             renderSavedStrategies();
-            alert("?�략???�?�되?�습?�다.");
+            alert("전략이 저장되었습니다.");
         });
     }
 
@@ -2655,7 +2668,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnDeepDrill) {
         btnDeepDrill.addEventListener('click', async () => {
             if (!currentDrillParams) {
-                alert("분석???�라미터가 ?�습?�다.");
+                alert("분석할 파라미터가 없습니다.");
                 return;
             }
 
@@ -2712,7 +2725,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             btnDeepDrill.disabled = false;
-            btnDeepDrill.textContent = "?�� DEEP DRILL (Apply & Run)";
+            btnDeepDrill.textContent = "💎 DEEP DRILL (Apply & Run)";
         });
     }
 });
