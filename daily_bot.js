@@ -47,8 +47,6 @@ async function sendTelegram(chatId, text) {
 
 // Helper: Start Date Fallback
 function getStartDate(userConfig) {
-    // DB saves 'startDate' at top level. File has 'startDate' at top level.
-    // Default to strict date if missing to avoid huge calculation?
     return userConfig.startDate || "2023-01-01";
 }
 
@@ -133,16 +131,11 @@ async function main() {
         console.log(`Processing User: ${user.id} (${user.source})...`);
 
         // Map Data Schema (DB vs File)
-        // DB: flat (safe, offensive...), userSeed, tgChatId (maybe?)
-        // File: params.safe, initialCapital, telegramChatId
-
-        // Normalize Params
         let params = {};
 
         if (user.source === 'firebase') {
-            // DB Structure (with potential merged file props)
             params = {
-                initialCapital: parseFloat(user.userSeed || user.initialCapital || 10000), // Updated to fallback to initialCapital
+                initialCapital: parseFloat(user.userSeed || user.initialCapital || 10000),
                 startDate: getStartDate(user),
                 endDate: new Date().toISOString().split('T')[0],
                 safe: user.safe || user.params?.safe || {},
@@ -152,7 +145,6 @@ async function main() {
                 useRealTier: user.useRealTier || false
             };
         } else {
-            // File Structure
             params = {
                 initialCapital: parseFloat(user.initialCapital || 10000),
                 startDate: user.startDate || "2023-01-01",
@@ -172,9 +164,7 @@ async function main() {
             continue;
         }
 
-        // Run Logic
-        // Pass injections!
-        const injections = user.injections || user.history?.injections || []; // Safe fallback
+        const injections = user.injections || user.history?.injections || [];
 
         try {
             const result = runSimulation(SOXL_DATA, QQQ_DATA, params, injections);
@@ -205,34 +195,26 @@ async function main() {
                 nettingOrders.forEach(o => {
                     const isBuy = o.type.includes('buy');
                     const icon = isBuy ? "🔴" : "🔵";
-                    const priceFmt = o.price ? `$${o.price.toFixed(2)}` : "Market";
-
-                    // Simple text parsing/reconstruction or use o.text
-                    // o.text example: "LOC 매수 10개 @ $100"
-
                     msg += `${icon} <b>${o.text}</b>\n`;
-                    // msg += `  └ Price: ${priceFmt}\n`;
                     msg += `──────────────────\n`;
                 });
             }
 
-            // Asset Summary
+            // Asset Summary with User Requested Fields
             const finalBal = Math.floor(result.finalBalance).toLocaleString();
             const currentTier = result.finalState.holdings ? result.finalState.holdings.length : 0;
             const seedDisp = Math.floor(result.finalState.currentSeed).toLocaleString();
 
-            msg += `\n💰 <b>자산 요약</b>\n`;
-            msg += `총자산: $${finalBal}\n`;
-            msg += `시드: ${seedDisp}\n`;
-            msg += `현재 티어: ${currentTier}T\n`;
-
-            // Injections Info?
-            if (injections.length > 0) {
-                // Check if any injection happened today?
-                // Logic hard to track here without 'today'.
-                // Just Show total injections?
-                // msg += `(Injections Active: ${injections.length})\n`;
+            // Calculate Total Qty
+            let totalQty = 0;
+            if (result.finalState.holdings) {
+                totalQty = result.finalState.holdings.reduce((acc, h) => acc + h.qty, 0);
             }
+
+            msg += `\n💰 <b>자산 요약</b>\n`;
+            msg += `현재 주식 보유량: ${totalQty}주 (${currentTier}T)\n`;
+            msg += `이번 사이클 시드: $${seedDisp}\n`;
+            msg += `총자산 (전일종가): $${finalBal}\n`;
 
             await sendTelegram(chatId, msg);
             console.log(`  -> Sent to ${chatId}`);
