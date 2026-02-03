@@ -208,7 +208,7 @@ async function main() {
             // Calculate Total Qty
             let totalQty = 0;
             if (result.finalState.holdings) {
-                totalQty = result.finalState.holdings.reduce((acc, h) => acc + h.qty, 0);
+                totalQty = result.finalState.holdings.reduce((acc, h) => acc + (h.quantity || 0), 0);
             }
 
             msg += `\n💰 <b>자산 요약</b>\n`;
