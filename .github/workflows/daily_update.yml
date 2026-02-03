@@ -1,0 +1,59 @@
+name: Daily Data Update & Bot
+
+on:
+  schedule:
+    # UTC 23:30 = KST 08:30 (?¤ìŒ???„ì¹¨)
+    - cron: '30 23 * * *'
+  workflow_dispatch: # Manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  update-and-notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      # 1. Python Setup (Data Update)
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Python dependencies
+        run: pip install yfinance pandas
+
+      - name: Run Data Update Script
+        run: python update_data.py
+
+      - name: Check for Data Changes
+        id: git-check
+        run: |
+          git diff --quiet || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and Push Data Changes
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add js/data.js
+          git commit -m "Auto-update market data $(date +'%Y-%m-%d')"
+          git push
+
+      # 2. Node.js Setup (Telegram Bot)
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Node dependencies
+        run: npm install
+
+      - name: Run Telegram Bot
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+          BOT_USER_ID: "stock-bot-3" # <-- Bot 2 ID
+        run: node daily_bot.js

@@ -1,0 +1,573 @@
+:root {
+    --bg-color: #f0f2f5;
+    --card-bg: #ffffff;
+    --text-primary: #1a1a1a;
+    --text-secondary: #555555;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --success: #10b981;
+    --danger: #ef4444;
+    --border: #e5e7eb;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+body {
+    margin: 0;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-size: 14px;
+    -webkit-tap-highlight-color: transparent;
+    /* Remove tap highlight */
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    height: auto;
+    /* Override style.css 100vh */
+}
+
+/* --- Header --- */
+header {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem;
+    /* Reduced padding */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    position: relative;
+    /* Changed from sticky to relative */
+    z-index: 100;
+}
+
+.logo {
+    font-size: 0.85rem;
+    /* Slightly smaller */
+    font-weight: 700;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    /* Slightly smaller */
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#sidebarToggle {
+    display: flex !important;
+    visibility: visible !important;
+    color: var(--text-primary);
+    background: transparent;
+    opacity: 1;
+    z-index: 200;
+}
+
+.actions {
+    display: flex;
+    gap: 0.3rem;
+    /* Reduced gap */
+}
+
+.header-btn {
+    padding: 0.4rem 0.6rem;
+    /* Reduced padding */
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    /* Reduced font size */
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Header Toggles - Restore visibility and style for mobile */
+.header-toggles {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    width: 100%;
+    order: 3;
+    margin-top: 0.5rem;
+    /* Reduced margin */
+    gap: 0.4rem;
+    /* Reduced gap */
+    background: #f8fafc;
+    padding: 0.5rem;
+    /* Reduced padding */
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+
+    /* FIX: Reset absolute positioning from style.css */
+    position: static !important;
+    left: auto !important;
+    transform: none !important;
+}
+
+.header-toggles label {
+    font-size: 0.75rem;
+    /* Reduced font size */
+    padding: 0.4rem 0.1rem;
+    /* Reduced padding */
+    background: #fff;
+    justify-content: center;
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+    /* Prevent wrapping inside button */
+}
+
+/* --- Main Layout --- */
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+}
+
+/* --- Config Panel (Mobile) --- */
+/* We will make this collapsible or just stacked */
+.config-panel {
+    background: var(--card-bg);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: var(--shadow);
+    /* Ensure it expands fully */
+    height: auto !important;
+    overflow: visible !important;
+}
+
+.config-toggle-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.config-content {
+    /* Potentially hidden */
+}
+
+.config-content.hidden {
+    display: none;
+}
+
+/* Forms */
+.card {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+h3 {
+    margin-top: 0;
+    font-size: 1rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    /* Single column */
+    gap: 0.75rem;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    /* Stack settings */
+    gap: 0.75rem;
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+input,
+select {
+    padding: 0.6rem;
+    /* Larger padding for touch */
+    border: 1px solid var(--border);
+    border-radius: 0.35rem;
+    font-size: 1rem;
+    /* 16px prevents iOS zoom, good for readability */
+    margin-top: 0.25rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Buttons */
+.primary-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 1rem;
+    /* Fat button */
+    border-radius: 0.5rem;
+    width: 100%;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+}
+
+/* Date Buttons */
+.date-btn-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.date-btn-wrapper {
+    flex: 0 0 auto;
+    text-align: center;
+}
+
+.circle-btn-date {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+/* --- Results Area --- */
+.results-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* KPI Grid */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* 2 Columns */
+    gap: 0.75rem;
+}
+
+.kpi-card {
+    background: var(--card-bg);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow);
+    text-align: center;
+    border-top: 3px solid #ccc;
+}
+
+.kpi-card .value {
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+/* Ledger Table */
+.table-container {
+    background: var(--card-bg);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+    /* Enable horizontal scroll */
+}
+
+table {
+    width: 100%;
+    min-width: 600px;
+    /* Force scroll */
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+th,
+td {
+    padding: 0.5rem;
+    text-align: right;
+    border-bottom: 1px solid #eee;
+}
+
+th:first-child,
+td:first-child {
+    text-align: center;
+    position: sticky;
+    left: 0;
+    background: inherit;
+    z-index: 5;
+    border-right: 2px solid #ddd;
+}
+
+thead th:first-child {
+    background: #e2e8f0;
+}
+
+/* Charts */
+.chart-container {
+    background: var(--card-bg);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow);
+    height: 300px;
+    /* Fixed height for mobile charts */
+}
+
+/* Toggles in Config for Mobile */
+.mobile-toggles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: #f8fafc;
+    border-radius: 0.5rem;
+}
+
+.mobile-toggles label {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.mobile-toggles input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+/* Utility */
+.hidden {
+    display: none !important;
+}
+
+/* Colors needed for weights and modes */
+.header-safe {
+    color: #10b981;
+}
+
+.header-offensive {
+    color: #f97316;
+}
+
+.weight-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+}
+
+.weight-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f8fafc;
+    padding: 0.25rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+}
+
+.weight-item input {
+    text-align: center;
+    border: none;
+    background: transparent;
+    font-weight: bold;
+    padding: 0.25rem;
+}
+
+/* Deep Mind Overlay */
+.dm-overlay {
+    /* Same styles, fixed full screen */
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.95);
+    z-index: 2000;
+    flex-direction: column;
+}
+
+.dm-container {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+}
+
+.dm-header {
+    padding: 1rem;
+    flex-direction: row;
+    /* Keep row for close button */
+}
+
+.dm-header h2 {
+    font-size: 1.4rem;
+}
+
+/* Warehouse / Saved Sheet */
+#warehouseWrapper,
+#mainSavedStrategiesWrapper {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+}
+
+#warehouseList,
+#mainSavedStrategies {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+#warehouseList .warehouse-card {
+    min-width: 80vw;
+    /* Wider cards on mobile */
+}
+
+/* --- Galaxy S25 / Modern Mobile Optimization --- */
+
+/* 1. Header & Injection Buttons */
+.header-toggles {
+    /* Redundant rule removed here, handled above */
+    align-items: stretch;
+}
+
+/* Hide Save Seed Button on Mobile */
+#btnSaveSeed {
+    display: none !important;
+}
+
+/* Injection Buttons (Force larger touch targets) */
+#btnInjSeed,
+#btnInjCash {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100% !important;
+    /* Fill grid cell */
+    padding: 0.8rem 0.5rem !important;
+    /* Fat touch target */
+    font-size: 0.95rem !important;
+    font-weight: 600;
+    border-radius: 8px !important;
+    margin: 0 !important;
+    /* Remove inline margin */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Hide if class is hidden (Utility override check) */
+#btnInjSeed.hidden,
+#btnInjCash.hidden {
+    display: none !important;
+}
+
+/* 2. Switch Toggle Optimization (S25 Comfort) */
+.switch-container {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.switch-container span {
+    font-size: 1rem !important;
+    font-weight: 600;
+    color: #334155 !important;
+}
+
+/* Toggle Switch Itself (Larger) */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 30px;
+    margin: 0 10px;
+}
+
+.slider.round:before {
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+}
+
+input:checked+.slider:before {
+    transform: translateX(22px);
+}
+
+/* 3. Order Sheet Optimization */
+#orderSheetArea {
+    padding: 1rem !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.15) !important;
+}
+
+#osListArea table {
+    font-size: 0.95rem;
+}
+
+#osListArea th,
+#osListArea td {
+    padding: 0.85rem 0.5rem;
+    /* More breathing room */
+}
+
+/* Netting / Adjust Buttons */
+#osBtnArea button {
+    width: 100% !important;
+    padding: 1rem !important;
+    font-size: 1.1rem !important;
+    border-radius: 10px !important;
+    height: 54px;
+    /* Explicit height for easy tapping */
+    margin-top: 1rem !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* 4. Deep Mind Button Upgrade */
+#btnStartDeepMind {
+    padding: 1.2rem !important;
+    font-size: 1.2rem !important;
+    border-radius: 12px !important;
+    letter-spacing: 0.5px;
+}

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPM (AI Pattern Machine)</title>
+    <link rel="stylesheet" href="css/rpm.css">
+    <!-- Google Fonts for specific aesthetic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Jura:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="logo-section">
+                <span class="rocket-icon">🚀</span>
+                <div class="title-group">
+                    <h1>RPM (AI Real-Time Pattern Machine) v11.1</h1>
+                    <span class="subtitle">Strategic Command Center - <span id="ticker-display"
+                            style="color:var(--accent-blue); font-weight:bold;">LOADING...</span></span>
+                </div>
+            </div>
+            <div class="score-section">
+                <span class="score-label">유사도 점수</span>
+                <span class="score-value" id="similarity-score">---.--</span>
+            </div>
+        </header>
+
+        <!-- Indicator Grid -->
+        <div class="indicator-grid">
+            <!-- RSI -->
+            <div class="card indicator-card" id="card-rsi">
+                <div class="card-header">- RSI</div>
+                <div class="card-value" id="val-rsi">--.--</div>
+                <div class="card-status" id="status-rsi">분석 중...</div>
+                <div class="card-desc" id="desc-rsi">데이터 로딩 대기</div>
+            </div>
+
+            <!-- Disparity 20 -->
+            <div class="card indicator-card" id="card-disp20">
+                <div class="card-header">- 이격도 20</div>
+                <div class="card-value" id="val-disp20">--.--%</div>
+                <div class="card-status" id="status-disp20">분석 중...</div>
+                <div class="card-desc" id="desc-disp20">데이터 로딩 대기</div>
+            </div>
+
+            <!-- ROC 10 -->
+            <div class="card indicator-card" id="card-roc10">
+                <div class="card-header">- ROC10</div>
+                <div class="card-value" id="val-roc10">--.--%</div>
+                <div class="card-status" id="status-roc10">분석 중...</div>
+                <div class="card-desc" id="desc-roc10">데이터 로딩 대기</div>
+            </div>
+
+            <!-- MACD Hist -->
+            <div class="card indicator-card" id="card-macd">
+                <div class="card-header">- MACD 히스토그램</div>
+                <div class="card-value" id="val-macd">-.---</div>
+                <div class="card-status" id="status-macd">분석 중...</div>
+                <div class="card-desc" id="desc-macd">데이터 로딩 대기</div>
+            </div>
+
+            <!-- Volatility Width -->
+            <div class="card indicator-card" id="card-bw">
+                <div class="card-header">- 변동성 폭(BW)</div>
+                <div class="card-value" id="val-bw">-.--</div>
+                <div class="card-status" id="status-bw">분석 중...</div>
+                <div class="card-desc" id="desc-bw">데이터 로딩 대기</div>
+            </div>
+
+            <!-- ATR -->
+            <div class="card indicator-card" id="card-atr">
+                <div class="card-header">- ATR %</div>
+                <div class="card-value" id="val-atr">-.--%</div>
+                <div class="card-status" id="status-atr">분석 중...</div>
+                <div class="card-desc" id="desc-atr">데이터 로딩 대기</div>
+            </div>
+
+            <!-- Disparity 60 -->
+            <div class="card indicator-card" id="card-disp60">
+                <div class="card-header">- 이격도 60</div>
+                <div class="card-value" id="val-disp60">--.--%</div>
+                <div class="card-status" id="status-disp60">분석 중...</div>
+                <div class="card-desc" id="desc-disp60">데이터 로딩 대기</div>
+            </div>
+
+            <!-- Stochastic K -->
+            <div class="card indicator-card" id="card-stoch">
+                <div class="card-header">- Stochastic K</div>
+                <div class="card-value" id="val-stoch">--.--%</div>
+                <div class="card-status" id="status-stoch">분석 중...</div>
+                <div class="card-desc" id="desc-stoch">데이터 로딩 대기</div>
+            </div>
+        </div>
+
+        <!-- AI Diagnosis Section -->
+        <div class="card ai-report-card">
+            <div class="card-header-large">
+                <span class="icon">📈</span> 8대 지표 종합 기술적 진단 (Gemini Analysis)
+            </div>
+            <div class="report-content" id="ai-report-content">
+                AI 분석 데이터를 불러오는 중입니다...
+            </div>
+        </div>
+
+        <!-- Future Scenarios & Stats -->
+        <div class="bottom-section">
+            <div class="card stat-card">
+                <div class="card-header">유사 패턴 평균 수익률 (5일 후)</div>
+                <div class="stat-value" id="stat-5d">--.--%</div>
+            </div>
+            <div class="card stat-card">
+                <div class="card-header">유사 패턴 평균 수익률 (30일 후)</div>
+                <div class="stat-value" id="stat-30d">--.--%</div>
+            </div>
+        </div>
+
+        <div class="card match-list-card">
+            <div class="card-header">Top 5 유사 과거 사례</div>
+            <ul id="match-list" class="match-list">
+                <!-- Executed dynamically -->
+            </ul>
+        </div>
+
+    </div>
+
+    <script src="js/rpm_data.js"></script>
+    <script src="js/rpm_ui.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,237 @@
+/* RPM Dashboard CSS - Strategic Command Center Theme */
+
+:root {
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --text-main: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --accent-blue: #29b6f6;
+    --accent-red: #ef5350;
+    --accent-yellow: #ffca28;
+    --accent-green: #66bb6a;
+    --font-heading: 'Jura', sans-serif;
+    --font-body: 'Noto Sans KR', sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Header */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 15px;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.rocket-icon {
+    font-size: 2.5rem;
+}
+
+.title-group h1 {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    margin: 0;
+    font-weight: 700;
+}
+
+.title-group .subtitle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.score-section {
+    text-align: right;
+}
+
+.score-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.score-value {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--accent-yellow);
+    text-shadow: 0 0 10px rgba(255, 202, 40, 0.3);
+}
+
+/* Cards */
+.card {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    border: 1px solid #333;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Indicator Grid */
+.indicator-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.indicator-card {
+    border-left: 4px solid var(--accent-blue);
+    /* Default accent */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 140px;
+}
+
+.indicator-card .card-header {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+
+.indicator-card .card-value {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.indicator-card .card-status {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    margin-bottom: 3px;
+}
+
+.indicator-card .card-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* Color Modifiers for Status */
+.status-bullish {
+    color: var(--accent-red) !important;
+}
+
+/* High/Hot */
+.status-bearish {
+    color: var(--accent-blue) !important;
+}
+
+/* Low/Cold */
+.status-neutral {
+    color: var(--accent-green) !important;
+}
+
+.border-bullish {
+    border-left-color: var(--accent-red) !important;
+}
+
+.border-bearish {
+    border-left-color: var(--accent-blue) !important;
+}
+
+.border-neutral {
+    border-left-color: var(--accent-green) !important;
+}
+
+
+/* AI Report Section */
+.ai-report-card {
+    border-left: 6px solid #9c27b0;
+    margin-bottom: 30px;
+}
+
+.card-header-large {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ce93d8;
+}
+
+.report-content {
+    background-color: #1a1a1a;
+    padding: 20px;
+    border-radius: 8px;
+    line-height: 1.8;
+    font-size: 1.05rem;
+}
+
+.report-content h1,
+.report-content h2,
+.report-content h3 {
+    color: #fff;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.report-content p {
+    margin-bottom: 15px;
+}
+
+.report-content strong {
+    color: var(--accent-yellow);
+}
+
+/* Bottom Section */
+.bottom-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    text-align: center;
+}
+
+.stat-value {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-top: 10px;
+}
+
+.match-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.match-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+}

@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOXL + QQQ RSI Mode</title>
+    <link rel="stylesheet" href="css/style.css?v=3">
+    <link rel="stylesheet" href="css/mobile.css?v=3" media="(max-width: 768px)">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="js/app_v2.js?v=debug3"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <button id="sidebarToggle" class="icon-btn" style="margin-right:0.5rem; font-size:1.2rem;">☰</button>
+                📊 SOXL + QQQ
+            </div>
+
+            <div class="header-toggles">
+                <label><input type="checkbox" id="toggleCashChart"> 예수금 ON</label>
+                <label><input type="checkbox" id="toggleAssetChart"> 총자산 ON</label>
+                <label><input type="checkbox" id="toggleDDChart"> DD ON</label>
+                <label style="margin-left: 10px; color: #fbbf24;"><input type="checkbox" id="toggleRobustness"> 🔬
+                    Robustness</label>
+                <label style="margin-left: 10px; color: #8b5cf6;"><input type="checkbox" id="toggleSavedStrategies">
+                    임시보관</label>
+                <label style="margin-left: 10px; color: #10b981;"><input type="checkbox" id="toggleWarehouse">
+                    파라미터 창고</label>
+
+                <!-- Injection Buttons (Visible only in Trading Sheet) -->
+                <button id="btnInjSeed" class="hidden"
+                    style="margin-left:10px; padding:3px 8px; font-size:0.8rem; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer;">
+                    💸 시드변동
+                </button>
+                <button id="btnInjCash" class="hidden"
+                    style="margin-left:5px; padding:3px 8px; font-size:0.8rem; background:#2563eb; color:white; border:none; border-radius:4px; cursor:pointer;">
+                    💵 예수금변동
+                </button>
+            </div>
+
+            <div class="actions">
+                <button id="btnOrderSheet" class="header-btn hidden">주문표</button>
+                <button id="btnDeepMind" class="header-btn">DEEP MIND</button>
+                <button id="btnExportBot" class="header-btn" style="background-color: #4b5563;">🤖 봇설정복사</button>
+                <button id="themeToggle" class="icon-btn">🌙</button>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <main>
+            <!-- Sidebar: Configuration -->
+            <aside class="config-panel">
+                <section class="card">
+                    <h3>🛠 기본 설정</h3>
+                    <div class="form-grid">
+                        <label>초기자본($)
+                            <button id="btnSaveSeed" class="hidden"
+                                style="margin-left:5px; padding:2px 8px; font-size:0.75rem; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer;"
+                                title="현재 값 저장">💾</button> <!-- Save Button -->
+                            <input type="number" id="initCapital" value="10000">
+                        </label>
+                        <label>수수료(%) <input type="number" id="feeRate" value="0" step="0.01"></label>
+                        <label>시작일 <input type="date" id="startDate" value="2018-01-01"></label>
+                        <label>종료일 <input type="date" id="endDate" value="2025-12-31"></label>
+
+                        <!-- Quick Date Buttons -->
+                        <div class="date-btn-container">
+                            <div class="date-btn-wrapper">
+                                <button class="circle-btn-date" id="btnDate1">1</button>
+                                <span class="date-label">올해</span>
+                            </div>
+                            <div class="date-btn-wrapper">
+                                <button class="circle-btn-date" id="btnDate2">2</button>
+                                <span class="date-label">최근1년</span>
+                            </div>
+                            <div class="date-btn-wrapper">
+                                <button class="circle-btn-date" id="btnDate3">3</button>
+                                <span class="date-label">최근3년</span>
+                            </div>
+                            <div class="date-btn-wrapper">
+                                <button class="circle-btn-date" id="btnDate4">4</button>
+                                <span class="date-label">최근5년</span>
+                            </div>
+                            <div class="date-btn-wrapper">
+                                <button class="circle-btn-date" id="btnDate5">5</button>
+                                <span class="date-label">최근8년</span>
+                            </div>
+                            <div class="date-btn-wrapper">
+                                <button class="circle-btn-date" id="btnDate6">6</button>
+                                <span class="date-label">전체</span>
+                            </div>
+                            <div class="date-btn-wrapper">
+                                <button class="circle-btn-date" id="btnDate7">7</button>
+                                <span class="date-label">다음 날</span>
+                            </div>
+                        </div>
+                        <div
+                            style="grid-column: 1 / -1; border-top: 1px solid #eee; margin-top: 0.5rem; padding-top: 0.5rem;">
+                            <!-- Real Tier Toggle Switch (Top) -->
+                            <div class="switch-container" style="margin-bottom: 0.5rem; justify-content: center;">
+                                <span>Tier 방식</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="toggleRealTier" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                                <span style="color: #2563eb;">Real Tier 방식</span>
+                            </div>
+
+                            <!-- Trading Sheet Toggle -->
+                            <div class="switch-container"
+                                style="margin-bottom: 0.5rem; justify-content: center; margin-top:10px; border-top:1px dashed #e2e8f0; padding-top:10px;">
+                                <span style="font-size:0.9rem; color:#64748b;">백테스터</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="toggleMode">
+                                    <span class="slider round"
+                                        style="background:linear-gradient(45deg, #8b5cf6, #d946ef);"></span>
+                                </label>
+                                <span style="font-size:0.9rem; font-weight:bold; color:#8b5cf6;">매매 시트</span>
+                            </div>
+
+                            <!-- Save/Use Defaults Button (Hidden by default, shown in Trading Sheet Mode) -->
+                            <button id="btnUseDefaults" class="hidden"
+                                style="width:100%; margin-top:5px; padding:10px; background:#10b981; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
+                                ✅ 현재 설정 사용 (Save Defaults)
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Seed Input Modal -->
+                <div id="seedModal" class="modal hidden"
+                    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; justify-content: center; align-items: center;">
+                    <div class="modal-content"
+                        style="background: white; padding: 2rem; border-radius: 12px; max-width: 90%; width: 400px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+                        <h3 style="margin-bottom: 15px; color:#1e1e1e;">💰 초기 시드 설정 (Initial Capital)</h3>
+                        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">올해 매매를 시작할 때의 원금을
+                            입력해주세요.<br>(저장이후에는 자동으로 불러옵니다)</p>
+                        <input type="number" id="modalSeedInput"
+                            style="width: 100%; padding: 12px; font-size: 1.2rem; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                        <div style="display: flex; gap: 10px;">
+                            <button id="btnSaveModalSeed"
+                                style="flex: 1; background: #2563eb; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">확인
+                                및 저장</button>
+                            <button id="btnCloseSeedModal"
+                                style="flex: 1; background: #94a3b8; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">취소</button>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="card">
+                    <h3 class="header-safe">🛡 Safe Mode (안전)</h3>
+                    <div class="form-row">
+                        <label>매수(Loc %) <input type="number" id="safeBuyLimit" value="3" step="0.1"></label>
+                        <label>익절(Target %) <input type="number" id="safeTarget" value="0.2" step="0.1"></label>
+                        <label>보유(Day) <input type="number" id="safeTimeCut" value="30"></label>
+                    </div>
+                    <h4>분할 비중 (1~7차) %</h4>
+                    <div class="weight-grid" id="safeWeights">
+                        <div class="weight-item"><span class="weight-label">1</span><input type="number" value="0">
+                        </div>
+                        <div class="weight-item"><span class="weight-label">2</span><input type="number" value="20">
+                        </div>
+                        <div class="weight-item"><span class="weight-label">3</span><input type="number" value="20">
+                        </div>
+                        <div class="weight-item"><span class="weight-label">4</span><input type="number" value="20">
+                        </div>
+                        <div class="weight-item"><span class="weight-label">5</span><input type="number" value="20">
+                        </div>
+                        <div class="weight-item"><span class="weight-label">6</span><input type="number" value="20">
+                        </div>
+                        <div class="weight-item"><span class="weight-label">7</span><input type="number" value="0">
+                        </div>
+                        <div class="weight-item"><span class="weight-label">8</span><input type="number"
+                                id="safeWeight8" value="0" disabled style="opacity:0.3"></div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h3 class="header-offensive">⚔ Offensive Mode (공세)</h3>
+                    <div class="form-row">
+                        <label>매수(Loc %) <input type="number" id="offBuyLimit" value="4" step="0.1"></label>
+                        <label>익절(Target %) <input type="number" id="offTarget" value="3" step="0.1"></label>
+                        <label>보유(Day) <input type="number" id="offTimeCut" value="7"></label>
+                    </div>
+                    <h4>분할 비중 (1~7차) %</h4>
+                    <div class="weight-grid" id="offWeights">
+                        <div class="weight-item"><span class="weight-label">1</span><input type="number" value="0">
+                        </div>
+                        <div class="weight-item"><span class="weight-label">2</span><input type="number" value="0">
+                        </div>
+                        <div class="weight-item"><span class="weight-label">3</span><input type="number" value="20">
+                        </div>
+                        <div class="weight-item"><span class="weight-label">4</span><input type="number" value="20">
+                        </div>
+                        <div class="weight-item"><span class="weight-label">5</span><input type="number" value="20">
+                        </div>
+                        <div class="weight-item"><span class="weight-label">6</span><input type="number" value="20">
+                        </div>
+                        <div class="weight-item"><span class="weight-label">7</span><input type="number" value="20">
+                        </div>
+                        <div class="weight-item"><span class="weight-label">8</span><input type="number" id="offWeight8"
+                                value="0" disabled style="opacity:0.3"></div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h3>⚖ Rebalancing (10 Days)</h3>
+                    <div class="form-row">
+                        <label>이익 가산(%) <input type="number" id="profitAdd" value="70"></label>
+                        <label>손실 차감(%) <input type="number" id="lossSub" value="20"></label>
+                    </div>
+                </section>
+
+                <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                    <button id="runBtn" class="primary-btn" style="flex:2;">시뮬레이션 시작 (RUN)</button>
+                    <button id="btnSaveCurrentParams" class="primary-btn" style="flex:1; background:#10b981;"
+                        title="현재 파라미터 창고 저장">💾</button>
+                </div>
+            </aside>
+
+            <!-- Main Area: Results -->
+            <section class="results-area">
+                <!-- Order Sheet (Hidden by default) -->
+                <div id="orderSheetArea" class="card hidden"
+                    style="border: 2px solid #2563eb; background: #f0f9ff; margin-bottom: 1rem;">
+                    <!-- Injected by JS -->
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card" style="border-top-color: #ef4444;">
+                        <div class="label">TOTAL RETURN (총수익률)</div>
+                        <div class="value" id="kpiReturn" style="color: #ef4444;">0%</div>
+                        <div class="sub" id="kpiSeed">Seed: $40,000</div>
+                    </div>
+                    <div class="kpi-card" style="border-top-color: #a855f7;">
+                        <div class="label">CAGR (연평균)</div>
+                        <div class="value" id="kpiCagr" style="color: #a855f7;">0%</div>
+                        <div class="sub">Growth Rate</div>
+                    </div>
+                    <div class="kpi-card" style="border-top-color: #334155;">
+                        <div class="label">FINAL ASSET</div>
+                        <div class="value" id="kpiFinal" style="color: #334155;">$0</div>
+                        <div class="sub">End Value</div>
+                    </div>
+                    <div class="kpi-card" style="border-top-color: #3b82f6;">
+                        <div class="label">MAX DRAWDOWN</div>
+                        <div class="value" id="kpiMdd" style="color: #3b82f6;">0%</div>
+                        <div class="sub" id="kpiMddDate">Risk Level</div> <!-- Added ID -->
+                    </div>
+                    <div class="kpi-card" style="border-top-color: #10b981;">
+                        <div class="label">WIN RATE</div>
+                        <div class="value" id="kpiWinRate" style="color: #10b981;">0%</div>
+                        <div class="sub" id="kpiCount">Count: 0</div>
+                    </div>
+                    <div class="kpi-card" style="border-top-color: #fbbf24;">
+                        <div class="label">SQN (>3.0 Good)</div>
+                        <div class="value" id="kpiSqn" style="color: #fbbf24;">0.00</div>
+                        <div class="sub">System Quality</div>
+                    </div>
+                    <!-- Placeholder 1 -->
+                    <div class="kpi-card" style="border-top-color: #94a3b8;">
+                        <div class="label">EXTRA INFO 1</div>
+                        <div class="value" id="kpiExtra1" style="color: #94a3b8;">-</div>
+                        <div class="sub">TBD</div>
+                    </div>
+                    <!-- Placeholder 2 -->
+                    <div class="kpi-card" style="border-top-color: #94a3b8;">
+                        <div class="label">EXTRA INFO 2</div>
+                        <div class="value" id="kpiExtra2" style="color: #94a3b8;">-</div>
+                        <div class="sub">TBD</div>
+                    </div>
+                </div>
+
+                <!-- NEW: Integrated Robustness Analysis -->
+                <div id="robustnessReport" class="hidden"
+                    style="margin-bottom: 2rem; background: #1e293b; padding: 1.5rem; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #475569; padding-bottom: 0.5rem;">
+                        <h3
+                            style="margin: 0; color: #f8fafc; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>🔬</span> Reliability Seven (Robustness Test)
+                        </h3>
+                        <span id="rbMainStatus"
+                            style="font-size: 0.9rem; color: #fbbf24; font-weight: bold;">Waiting...</span>
+                    </div>
+
+                    <!-- Progress -->
+                    <div id="rbMainLoading" class="hidden" style="margin-bottom: 1.5rem;">
+                        <div class="progress-bar"
+                            style="height: 6px; background: #334155; border-radius: 3px; overflow: hidden;">
+                            <div id="rbMainProgress"
+                                style="width: 0%; height: 100%; background: linear-gradient(90deg, #ec4899, #8b5cf6); transition: width 0.3s;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid (Dark Theme) -->
+                    <div id="rbMainStats" class="hidden">
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                            <!-- Survival Rate -->
+                            <div
+                                style="background: #0f172a; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #334155;">
+                                <div
+                                    style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">
+                                    Survival Rate</div>
+                                <div id="rbMainSurvival" style="font-size: 1.3rem; font-weight: 700; color: #f8fafc;">0%
+                                </div>
+                            </div>
+                            <!-- Avg CAGR -->
+                            <div
+                                style="background: #0f172a; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #334155;">
+                                <div
+                                    style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">
+                                    Avg CAGR</div>
+                                <div id="rbMainCagr" style="font-size: 1.3rem; font-weight: 700; color: #f8fafc;">0%
+                                </div>
+                            </div>
+                            <!-- Avg MDD -->
+                            <div
+                                style="background: #0f172a; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #334155;">
+                                <div
+                                    style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">
+                                    Avg MDD</div>
+                                <div id="rbMainMdd" style="font-size: 1.3rem; font-weight: 700; color: #3b82f6;">0%
+                                </div>
+                            </div>
+                            <!-- Avg Win Rate -->
+                            <div
+                                style="background: #0f172a; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #334155;">
+                                <div
+                                    style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">
+                                    Avg Win Rate</div>
+                                <div id="rbMainWinRate" style="font-size: 1.3rem; font-weight: 700; color: #10b981;">0%
+                                </div>
+                            </div>
+                            <!-- Avg SQN -->
+                            <div
+                                style="background: #0f172a; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #334155;">
+                                <div
+                                    style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">
+                                    Avg SQN</div>
+                                <div id="rbMainSqn" style="font-size: 1.3rem; font-weight: 700; color: #fbbf24;">0.00
+                                </div>
+                            </div>
+                            <!-- R-Squared -->
+                            <div
+                                style="background: #0f172a; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #334155;">
+                                <div
+                                    style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.4rem; font-weight: 500;">
+                                    R-Squared</div>
+                                <div id="rbMainR2" style="font-size: 1.3rem; font-weight: 700; color: #f8fafc;">0.00
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Legend -->
+                        <div id="rbMainLegend" class="hidden"
+                            style="margin-top: 1rem; font-size: 0.85rem; color: #cbd5e1; background: #0f172a; padding: 1rem; border-radius: 8px; border: 1px solid #334155; line-height: 1.6;">
+                            <strong style="color: #fff; display:block; margin-bottom:0.3rem;">R-Squared Guide:</strong>
+                            <div style="display:flex; flex-wrap: wrap; gap: 1rem;">
+                                <span><span style="color: #10b981;">● 1.0</span> : 이상적인 꿈의 우상향 (Perfect)</span>
+                                <span><span style="color: #fbbf24;">● 0.9+</span> : 매우 훌륭한 균질성 (Excellent)</span>
+                                <span><span style="color: #ef4444;">● <0.5< /span> : 운이 크게 작용함 (Volatile)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sensitivity Analysis (Main) -->
+                <div id="sensitivityReport" class="hidden"
+                    style="margin-bottom: 2rem; background: #1e293b; padding: 1.5rem; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom: 1px solid #475569; padding-bottom: 0.5rem;">
+                        <h3
+                            style="margin:0; font-size:1.2rem; color:#f8fafc; display:flex; align-items:center; gap:0.5rem;">
+                            <span>🎯</span> Parameter Sensitivity (CSR Heatmap)
+                        </h3>
+                        <div id="senMainStatus" style="font-size:0.9rem; color:#64748b; font-style:italic;">Ready</div>
+                    </div>
+
+                    <!-- Progress -->
+                    <div id="senMainLoading" class="hidden"
+                        style="width:100%; height:4px; background:#334155; border-radius:2px; overflow:hidden; margin-bottom:1rem;">
+                        <div id="senMainProgress"
+                            style="width:0%; height:100%; background:linear-gradient(90deg, #ec4899, #8b5cf6); transition:width 0.3s;">
+                        </div>
+                    </div>
+
+                    <div id="senMainContent" class="hidden" style="display:flex; gap:2rem; flex-wrap:wrap;">
+                        <!-- Left: CSR Score -->
+                        <div
+                            style="flex:1; min-width:220px; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#0f172a; border-radius:1rem; padding:1.5rem; border:1px solid #334155;">
+                            <div
+                                style="font-size:0.9rem; color:#94a3b8; font-weight:bold; margin-bottom:0.5rem; letter-spacing:1px;">
+                                CSR SCORE</div>
+                            <div id="senMainCsrScore"
+                                style="font-size:3.5rem; font-weight:800; color:#3b82f6; line-height:1; text-shadow:0 0 20px rgba(59,130,246,0.3);">
+                                0.00</div>
+                            <div id="senMainCsrText"
+                                style="font-size:1.3rem; font-weight:bold; color:#f1f5f9; margin-top:1rem;">-</div>
+                            <div
+                                style="font-size:0.8rem; color:#64748b; margin-top:1rem; text-align:center; line-height:1.5;">
+                                <span style="color:#10b981;">● ~1.0</span> : Plateau (Safe)<br>
+                                <span style="color:#ef4444;">● <0.8< /span> : Peak (Risky)
+                            </div>
+                        </div>
+
+                        <!-- Right: Heatmap -->
+                        <div style="flex:2; min-width:300px;">
+                            <div style="text-align:center; font-size:0.8rem; color:#94a3b8; margin-bottom:10px;">
+                                X: Buy Limit (±2%) | Y: Profit Target (±2%)
+                            </div>
+                            <!-- Center Highlight Info -->
+                            <div style="text-align:center; font-size:0.75rem; color:#64748b; margin-bottom:5px;">Center
+                                = Current Param</div>
+
+                            <div id="senMainHeatmap" class="heatmap-grid"
+                                style="display:grid; gap:3px; justify-content:center; padding:10px; background:#0f172a; border-radius:8px; border:1px solid #334155;">
+                                <!-- Grid injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Ledger Table (Moved Top) -->
+                <div class="table-container">
+                    <table id="ledgerTable">
+                        <colgroup>
+                            <col style="width: 72px; min-width: 72px; max-width: 72px;">
+                            <col> <!-- Close -->
+                            <col> <!-- Mode -->
+                            <col> <!-- Change -->
+                            <!-- Combine others or leave auto -->
+                        </colgroup>
+                        <thead>
+                            <tr class="header-group">
+                                <th rowspan="2"
+                                    style="width: 72px; max-width: 72px; text-align: center !important; padding: 0 2px;">
+                                    날짜
+                                </th>
+                                <th rowspan="2">종가</th>
+                                <th rowspan="2">매매모드</th>
+                                <th rowspan="2">등락률</th>
+                                <th colspan="6" class="th-group-buy">매수 (Buy)</th>
+                                <th colspan="6" class="th-group-sell">매도 (Sell)</th>
+                                <th colspan="4" class="th-group-pnl">수익 (PnL)</th>
+                                <th colspan="4" class="th-group-asset">자산 (Asset)</th>
+                                <th colspan="1" class="th-group-etc">기타</th>
+                            </tr>
+                            <tr class="header-sub">
+                                <!-- Buy Group -->
+                                <th>티어</th>
+                                <th>할당금액</th>
+                                <th>LOC매수목표</th>
+                                <th>매수가</th>
+                                <th>매수량</th>
+                                <th>매수금액</th>
+                                <!-- Sell Group -->
+                                <th>목표가</th>
+                                <th>MOC매도</th>
+                                <th>매도일</th>
+                                <th>매도가</th>
+                                <th>매도량</th>
+                                <th>매도금액</th>
+                                <!-- PnL Group -->
+                                <th>수수료</th>
+                                <th>순익금액</th>
+                                <th>순익률</th>
+                                <th>누적순익</th>
+                                <!-- Asset Group -->
+                                <th>자금갱신</th>
+                                <th>시드총액</th>
+                                <th>총자산</th>
+                                <th>예수금</th>
+                                <!-- Etc Group -->
+                                <th>DD</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+
+
+                <!-- Charts Area -->
+                <div class="chart-container hidden" id="containerCash">
+                    <canvas id="cashChart"></canvas>
+                </div>
+                <div class="chart-container hidden" id="containerAsset">
+                    <canvas id="mainChart"></canvas>
+                </div>
+                <div class="chart-container hidden" id="containerDD" style="height: 200px;">
+                    <canvas id="ddChart"></canvas>
+                </div>
+
+            </section>
+        </main>
+
+        <!-- Parameter Warehouse Bottom Sheet -->
+        <div id="warehouseWrapper" style="display:none;">
+            <h3
+                style="font-size: 1rem; color: #059669; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span>🏭</span> 파라미터 창고 (Parameter Warehouse)
+            </h3>
+            <div id="warehouseList">
+                <div style="color: #64748b; font-size: 0.9rem;">No params in warehouse.</div>
+            </div>
+        </div>
+
+        <!-- Saved Strategies Bottom Sheet (Renamed to Temporary) -->
+        <div id="mainSavedStrategiesWrapper" style="display:none;"> <!-- Hidden initially, shown by JS -->
+            <h3 style="font-size: 1rem; color: #8b5cf6; margin-bottom: 0.5rem;">📦 임시보관함 (Temporary Storage)</h3>
+            <div id="mainSavedStrategies">
+                <!-- JS will inject cards here -->
+                <div style="color: #64748b; font-size: 0.9rem;">No saved strategies.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEEP MIND VIEW (Overlay) -->
+    <div id="deepMindView" class="hidden">
+        <div class="dm-container">
+            <!-- Header -->
+            <div class="dm-header">
+                <div>
+                    <h2>🧠 DEEP MIND AI</h2>
+                    <p>Global Search & Robustness Analysis</p>
+                </div>
+                <button id="btnCloseDM" class="dm-close-btn">BACK</button>
+            </div>
+
+            <!-- Deep Mind Configuration Panel (NEW) -->
+            <div id="dmConfig" class="dm-card"
+                style="margin-bottom:1rem; padding:1.5rem; background:#1e293b; border:1px solid #334155;">
+                <h3 style="margin-top:0; color:#fbbf24; border-bottom:1px solid #475569; padding-bottom:0.5rem;">🛠️
+                    Search Range Configuration</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-top:1rem;">
+                    <!-- Safe Mode Ranges -->
+                    <div>
+                        <h4
+                            style="color:#d1d5db; margin-bottom:0.5rem; border-left:3px solid #10b981; padding-left:8px;">
+                            🛡️ Safe Mode Ranges</h4>
+                        <div class="form-row">
+                            <label>Buy Limit (%)</label>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <input type="number" id="dmSafeBuyMin" value="0" style="width:60px;"> ~ <input
+                                    type="number" id="dmSafeBuyMax" value="10" style="width:60px;">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label>Target (%)</label>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <input type="number" id="dmSafeTargetMin" value="0" style="width:60px;"> ~ <input
+                                    type="number" id="dmSafeTargetMax" value="10" style="width:60px;">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label>Time Cut (Days)</label>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <input type="number" id="dmSafeTimeMin" value="5" style="width:60px;"> ~ <input
+                                    type="number" id="dmSafeTimeMax" value="60" style="width:60px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Offensive Mode Ranges -->
+                    <div>
+                        <h4
+                            style="color:#d1d5db; margin-bottom:0.5rem; border-left:3px solid #ef4444; padding-left:8px;">
+                            ⚔️ Offensive Mode Ranges</h4>
+                        <div class="form-row">
+                            <label>Buy Limit (%)</label>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <input type="number" id="dmOffBuyMin" value="0" style="width:60px;"> ~ <input
+                                    type="number" id="dmOffBuyMax" value="10" style="width:60px;">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label>Target (%)</label>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <input type="number" id="dmOffTargetMin" value="0" style="width:60px;"> ~ <input
+                                    type="number" id="dmOffTargetMax" value="10" style="width:60px;">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label>Time Cut (Days)</label>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <input type="number" id="dmOffTimeMin" value="5" style="width:60px;"> ~ <input
+                                    type="number" id="dmOffTimeMax" value="60" style="width:60px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rebalance Ranges -->
+                <div style="margin-top:1rem; border-top:1px solid #334155; padding-top:1rem;">
+                    <h4 style="color:#d1d5db; margin-bottom:0.5rem; border-left:3px solid #3b82f6; padding-left:8px;">⚖️
+                        Rebalance Ranges</h4>
+                    <div style="display:flex; gap:2rem;">
+                        <div class="form-row" style="flex:1;">
+                            <label>Profit Add (%)</label>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <input type="number" id="dmProfitAddMin" value="40" style="width:60px;"> ~ <input
+                                    type="number" id="dmProfitAddMax" value="100" style="width:60px;">
+                            </div>
+                        </div>
+                        <div class="form-row" style="flex:1;">
+                            <label>Loss Sub (%)</label>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <input type="number" id="dmLossSubMin" value="0" style="width:60px;"> ~ <input
+                                    type="number" id="dmLossSubMax" value="40" style="width:60px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Iterations Config -->
+                <div style="margin-top:1rem; border-top:1px solid #334155; padding-top:1rem;">
+                    <div class="form-row">
+                        <label style="color:#fbbf24; font-weight:bold;">🧬 Number of Simulations (Random Seeds)</label>
+                        <input type="number" id="dmIterations" value="500"
+                            style="width:100px; padding:5px; border-radius:4px; border:1px solid #475569; background:#0f172a; color:white;">
+                    </div>
+                </div>
+
+                <div style="margin-top:1.5rem;">
+                    <button id="btnStartDeepMind" class="primary-btn"
+                        style="width:100%; background: linear-gradient(135deg, #10b981, #3b82f6); font-size:1.1rem; padding:1rem; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);">
+                        🚀 START DEEP MIND SEARCH
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="dmLoading" class="hidden">
+                <div class="spinner"></div>
+                <h3 id="dmLoadingText">AI가 최적의 파라미터를 탐색 중입니다...</h3>
+                <div class="progress-bar">
+                    <div id="dmProgress" style="width: 0%"></div>
+                </div>
+                <p id="dmProgressText">0 / 1000</p>
+            </div>
+
+            <!-- Step 1: Top 10 Table -->
+            <div id="dmResults" class="hidden">
+                <h3>🏆 Top 10 Candidates (Sorted by CAGR)</h3>
+                <div class="dm-table-wrapper">
+                    <table id="dmTable">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>CAGR</th>
+                                <th>MDD</th>
+                                <th>Win Rate</th>
+                                <th>SQN</th>
+                                <th>Profit Factor</th>
+                                <th>Params (Summary)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- Saved Strategies Section (Added) -->
+                <div id="mainSavedStrategiesWrapper" class="hidden"
+                    style="margin-top:2rem; padding-top:1rem; border-top:1px solid #334155;">
+                    <h3 style="color:#d1d5db; margin-bottom:1rem;">📂 Saved Strategies</h3>
+                    <div id="savedStrategiesView" class="saved-grid">
+                        <div style="color:#64748b; font-style:italic;">저장된 파라미터가 없습니다.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Modal for Robustness -->
+            <div id="dmModal" class="hidden">
+                <div class="dm-modal-content">
+                    <span id="btnModalClose" class="dm-modal-close">&times;</span>
+                    <h3>🔬 Robustness Analysis (Deep Dive)</h3>
+
+                    <!-- NEW: Parameter Display (Clean, High Visibility) -->
+                    <div id="dmParamsDisplay"
+                        style="background: #1e293b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #475569; position: relative;">
+                        <!-- Parameters will be injected here by JS -->
+                        <div style="text-align: center; color: #94a3b8;">Loading Parameters...</div>
+                    </div>
+
+                    <!-- Modal Progress -->
+                    <div id="rbLoading" class="hidden" style="margin-bottom: 1rem;">
+                        <div class="progress-bar" style="height: 6px; margin: 0.5rem 0;">
+                            <div id="rbProgress" style="width: 0%"></div>
+                        </div>
+                        <p id="rbProgressText" style="text-align: right; color: #94a3b8; font-size: 0.8rem; margin: 0;">
+                            0 / 1000</p>
+                    </div>
+
+                    <div class="dm-stat-grid">
+                        <div class="dm-card">
+                            <div class="label">Survival Rate</div>
+                            <div class="value" id="rbSurvival">0%</div>
+                        </div>
+                        <div class="dm-card">
+                            <div class="label">Avg CAGR</div>
+                            <div class="value" id="rbCagr">0%</div>
+                        </div>
+                        <div class="dm-card">
+                            <div class="label">Avg MDD</div>
+                            <div class="value" id="rbMdd">0%</div>
+                        </div>
+                        <div class="dm-card">
+                            <div class="label">Avg SQN</div>
+                            <div class="value" id="rbSqn">0.00</div>
+                        </div>
+                        <div class="dm-card">
+                            <div class="label">R-Squared (Equity)</div>
+                            <div class="value" id="rbR2">0.00</div>
+                        </div>
+                    </div>
+
+                    <!-- Sensitivity Analysis (Deep Dive) -->
+                    <div id="dmSensitivityReport" class="hidden"
+                        style="margin-top:1.5rem; background:#1e293b; padding:1.5rem; border-radius:8px; border:1px solid #475569;">
+                        <h3 style="margin:0 0 1rem 0; font-size:1.1rem; color:#f8fafc;">🎯 Parameter Sensitivity (CSR)
+                        </h3>
+                        <!-- Progress -->
+                        <div id="senDmLoading" class="hidden"
+                            style="width:100%; height:4px; background:#334155; border-radius:2px; overflow:hidden; margin-bottom:1rem;">
+                            <div id="senDmProgress"
+                                style="width:0%; height:100%; background:linear-gradient(90deg, #ec4899, #8b5cf6); transition:width 0.3s;">
+                            </div>
+                        </div>
+
+                        <div id="senDmContent" class="hidden" style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+                            <!-- Left: CSR Score -->
+                            <div
+                                style="flex:1; min-width:180px; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#0f172a; border-radius:8px; padding:1rem; border:1px solid #334155;">
+                                <div style="font-size:0.8rem; color:#94a3b8; font-weight:bold; margin-bottom:0.5rem;">
+                                    CSR SCORE</div>
+                                <div id="senDmCsrScore"
+                                    style="font-size:2.5rem; font-weight:800; color:#3b82f6; line-height:1;">-</div>
+                                <div id="senDmCsrText"
+                                    style="font-size:1.1rem; font-weight:bold; color:#f1f5f9; margin-top:0.5rem;">-
+                                </div>
+                            </div>
+                            <!-- Right: Heatmap -->
+                            <div style="flex:2; min-width:250px;">
+                                <div style="text-align:center; font-size:0.75rem; color:#64748b; margin-bottom:5px;">X:
+                                    Buy Limit (±2%) | Y: Target (±2%)</div>
+                                <div id="senDmHeatmap" class="heatmap-grid"
+                                    style="display:grid; gap:2px; justify-content:center;">
+                                    <!-- Grid -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:1rem; font-size:0.9rem; color:#ccc;">
+                        * Based on 1,000 random starts (2-4 months duration)
+                    </div>
+
+                    <!-- NEW: Deep Drill Button & Actions -->
+                    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #334155;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 0.5rem;">
+                            <button id="btnBackToList" class="action-btn"
+                                style="background: #475569; flex:1; color:white; border:none; padding:12px; border-radius:6px; cursor:pointer; font-weight:bold;">
+                                ◀ BACK TO LIST
+                            </button>
+                            <button id="btnSaveStrategy" class="action-btn"
+                                style="background: #059669; flex:1; color:white; border:none; padding:12px; border-radius:6px; cursor:pointer; font-weight:bold;">
+                                💾 SAVE PARAMETERS
+                            </button>
+                        </div>
+                        <button id="btnDeepDrill" class="primary-btn" style="
+                            width: 100%;
+                            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+                            color: white;
+                            font-weight: bold;
+                            padding: 0.8rem 2rem;
+                            border: none;
+                            border-radius: 9999px;
+                            font-size: 1rem;
+                            cursor: pointer;
+                            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+                            transition: transform 0.2s;
+                        " onmouseover="this.style.transform='scale(1.02)'"
+                            onmouseout="this.style.transform='scale(1)'">
+                            💎 DEEP DRILL (Apply & Run)
+                        </button>
+                    </div>
+                    <p style="text-align:center; color:#64748b; font-size:0.8em; margin-top:0.5rem;">
+                        * Save Parameters to store this setup. Deep Drill applies it immediately.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Injection Input Modal -->
+    <div id="injectionModal" class="modal hidden"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2100; display: flex; justify-content: center; align-items: center;">
+        <div class="modal-content"
+            style="background: white; padding: 2rem; border-radius: 12px; width: 350px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+            <h3 id="injModalTitle" style="margin-bottom: 15px;">자금 변동 신청</h3>
+            <label style="display:block; text-align:left; font-size:0.9rem; color:#64748b;">변동 금액 ($)</label>
+            <input type="number" id="injAmount" placeholder="예: 1000 or -500"
+                style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 6px;">
+
+            <label style="display:block; text-align:left; font-size:0.9rem; color:#64748b;">적용 희망 날짜</label>
+            <input type="date" id="injDate"
+                style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            <div id="injDateMsg" class="hidden"
+                style="margin-bottom: 20px; font-size: 0.9rem; color: #10b981; font-weight: bold; background: #ecfdf5; padding: 10px; border-radius: 6px;">
+                🔄 다음 자금 갱신(리밸런싱)일에<br>자동으로 합산되어 반영됩니다.
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button id="btnSaveInj"
+                    style="flex: 1; background: #2563eb; color: white; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">추가</button>
+                <button id="btnCloseInj"
+                    style="flex: 1; background: #94a3b8; color: white; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">취소</button>
+            </div>
+            <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
+                <button id="btnViewInjHistory"
+                    style="background:none; border:none; color:#64748b; text-decoration:underline; cursor:pointer; font-size:0.9rem;">
+                    📋 이번 주기 변동 신청 내역 보기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Injection History Modal -->
+    <div id="injectionHistoryModal" class="modal hidden"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2200; display: flex; justify-content: center; align-items: center;">
+        <div class="modal-content"
+            style="background: white; padding: 2rem; border-radius: 12px; width: 400px; max-height: 80vh; overflow-y:auto; text-align: center;">
+            <h3 style="margin-bottom: 15px;">📋 변동 신청 내역</h3>
+            <ul id="injHistoryList" style="list-style:none; padding:0; text-align:left; margin-bottom:20px;">
+                <!-- Items will be injected here -->
+            </ul>
+            <button id="btnCloseInjHistory"
+                style="background: #94a3b8; color: white; padding: 8px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">닫기</button>
+        </div>
+    </div>
+
+</body>
+
+</html>

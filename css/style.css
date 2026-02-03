@@ -1,0 +1,964 @@
+:root {
+    --bg-color: #f0f2f5;
+    --card-bg: #ffffff;
+    --text-primary: #1a1a1a;
+    --text-secondary: #555555;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --success: #10b981;
+    --danger: #ef4444;
+    --border: #e5e7eb;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+body {
+    margin: 0;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.header-toggles {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.header-toggles label {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+}
+
+.header-toggles input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-btn {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.header-btn:hover {
+    background: #f1f5f9;
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+header {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    flex-shrink: 0;
+    position: relative;
+    /* For absolute centering */
+}
+
+.logo {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+main {
+    flex: 1;
+    display: grid;
+    /* User requested 20% Left (Half of previous 40%), Rest Right */
+    grid-template-columns: 20% 1fr;
+    gap: 1rem;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.config-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    transition: width 0.3s ease;
+    /* Optional: smooth resize if width was used, but grid change is snappy */
+}
+
+.config-panel input {
+    font-weight: 600;
+}
+
+/* Sidebar Toggle State */
+main.sidebar-hidden {
+    grid-template-columns: 1fr;
+}
+
+main.sidebar-hidden .config-panel {
+    display: none;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+}
+
+h3 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+h4 {
+    margin: 0.5rem 0 0.5rem 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+/* Reduce width of Basic Settings inputs */
+.form-grid input {
+    width: 70%;
+}
+
+.form-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.form-row label {
+    flex: 1;
+}
+
+/* Configuration Panel Inputs */
+.form-row input {
+    max-width: 60px;
+    /* Limit width */
+    align-self: flex-start;
+    /* Don't stretch to full label width */
+}
+
+.form-row label {
+    flex: 1;
+    min-width: 0;
+    /* Allow shrinking if needed */
+}
+
+.weight-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+}
+
+.weight-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #f8fafc;
+    padding: 0.25rem;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+}
+
+.weight-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    min-width: 12px;
+    text-align: center;
+}
+
+.weight-grid input {
+    width: 100%;
+    text-align: center;
+    border: none;
+    background: transparent;
+    padding: 0;
+    font-weight: 600;
+    color: #334155;
+}
+
+.weight-grid input:focus {
+    outline: none;
+    background: #fff;
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+input,
+select {
+    margin-top: 0.1rem;
+    padding: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+    background: var(--bg-color);
+}
+
+input:focus {
+    outline: 1px solid var(--accent);
+}
+
+.primary-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 0.35rem;
+    width: 100%;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.primary-btn:hover {
+    background: var(--accent-hover);
+}
+
+/* Results */
+.results-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow: auto;
+    /* Allow scrolling */
+    padding-right: 0.5rem;
+    min-width: 0;
+    /* Important for horizontal scroll inside grid */
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    /* 8 Cards now */
+    gap: 0.5rem;
+}
+
+.kpi-card {
+    background: var(--card-bg);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1);
+    text-align: center;
+    border-top: 4px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 80px;
+}
+
+/* Specific Colors for text match the border usually */
+.kpi-card .label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.kpi-card .value {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 0.1rem;
+}
+
+.kpi-card .sub {
+    font-size: 0.65rem;
+    color: #94a3b8;
+}
+
+/* Heatmap Styles */
+.heatmap-grid {
+    width: 250px;
+    /* Fixed width for consistency? or 100% */
+    height: 250px;
+    background: #0f172a;
+}
+
+.heatmap-cell {
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    transition: transform 0.1s;
+    border-radius: 1px;
+}
+
+.heatmap-cell:hover {
+    transform: scale(1.5);
+    z-index: 20;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+    border: 1px solid white;
+}
+
+.chart-container {
+    height: 350px;
+    background: var(--card-bg);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    box-shadow: var(--shadow);
+}
+
+/* Table Styles - Dense & Excel-like */
+.table-container {
+    background: var(--card-bg);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow);
+    overflow: auto;
+    flex: 1;
+    min-height: 400px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+thead th {
+    background: #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 0.5rem;
+    text-align: right;
+    border-bottom: 2px solid #cbd5e1;
+    font-weight: 700;
+    color: #334155;
+    min-width: 60px;
+    /* Ensure headers don't collapse too much */
+}
+
+thead th:first-child {
+    text-align: left;
+}
+
+tbody td {
+    padding: 0.5rem;
+    text-align: right !important;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+}
+
+tbody td:first-child {
+    text-align: center !important;
+    font-weight: 600;
+    width: 72px !important;
+    min-width: 72px !important;
+    max-width: 72px !important;
+    padding: 0 2px !important;
+    /* Reduce padding to fit text */
+    letter-spacing: -1px;
+    /* Tighten text to fit on one line */
+    white-space: nowrap !important;
+    /* Prevent wrapping as requested (Don't move day down) */
+    overflow: hidden;
+    line-height: 1.2;
+}
+
+/* Alternating rows + Hover */
+tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+/* Tier Column Center Alignment */
+thead th:nth-child(5),
+/* Header is in sub-row? No, sub-row indices reset. */
+tbody td:nth-child(5) {
+    text-align: center !important;
+}
+
+/* Header Sub-row Tier is the 1st th in the 2nd tr? */
+/* The header structure is complex (rowspan/colspan). 
+   Tier is 1st in sub-row (Buy Group). 
+   Let's target strict td for now as that's the main visual. 
+   Header: tr.header-sub th:nth-child(1) is Tier.
+*/
+.header-sub th:nth-child(1) {
+    text-align: center !important;
+}
+
+tbody tr:hover {
+    background-color: #eff6ff;
+}
+
+/* Colors for Modes */
+.mode-safe {
+    color: #10b981;
+    font-weight: bold;
+}
+
+.mode-offensive {
+    color: #f97316;
+    font-weight: bold;
+}
+
+/* Text Utils */
+.text-red {
+    color: #ef4444;
+}
+
+.text-blue {
+    color: #2563eb;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+/* Sticky Date Column (First Column) */
+#ledgerTable th:first-child,
+#ledgerTable td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 20;
+    border-right: 2px solid #e2e8f0;
+}
+
+#ledgerTable thead th:first-child {
+    z-index: 30;
+    /* Higher than normal header (10) and sticky cell (20) */
+    background-color: #e2e8f0;
+    /* Match header bg */
+}
+
+#ledgerTable tbody td:first-child {
+    background-color: #ffffff;
+    /* Default bg */
+}
+
+/* Ensure alternating row colors apply to sticky column too */
+#ledgerTable tbody tr:nth-child(even) td:first-child {
+    background-color: #f8fafc;
+    background-color: #f8fafc;
+}
+
+.date-btn-container {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    /* Increased gap for labels */
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.date-btn-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    cursor: pointer;
+    /* Click anywhere in wrapper? Or just button? Wrapper is better UX */
+}
+
+/* Make the label clicking also trigger the button? 
+   Current JS listens to ID 'btnDate1'. 
+   I should probably make the wrapper the interactive element or just keep the button as the target.
+   User asked for labels below, didn't specify interaction. Keeping interaction on button is safer for now.
+*/
+
+.date-label {
+    font-size: 0.65rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.circle-btn-date {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.75rem;
+    color: #475569;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.circle-btn-date:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+}
+
+#ledgerTable tbody tr:hover td:first-child {
+    background-color: #eff6ff;
+}
+
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Specific Header Colors */
+.header-safe {
+    color: #10b981;
+    /* Green */
+}
+
+.header-offensive {
+    color: #f97316;
+    /* Orange */
+}
+
+/* Table Header Groups - Pastel Colors */
+/* Table Header Groups - Pastel Colors */
+.th-group-buy {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+    text-align: center !important;
+}
+
+.th-group-sell {
+    background-color: #dbeafe !important;
+    color: #1e40af !important;
+    text-align: center !important;
+}
+
+.th-group-pnl {
+    background-color: #dcfce7 !important;
+    color: #166534 !important;
+    text-align: center !important;
+}
+
+.th-group-asset {
+    background-color: #ffedd5 !important;
+    /* Orange tint for asset/money */
+    color: #9a3412 !important;
+    text-align: center !important;
+}
+
+.th-group-etc {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    text-align: center !important;
+}
+
+/* Switch CSS */
+.switch-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: #475569;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: #2563eb;
+}
+
+input:focus+.slider {
+    box-shadow: 0 0 1px #2563eb;
+}
+
+input:checked+.slider:before {
+    transform: translateX(16px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 20px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* Utility */
+.hidden {
+    display: none !important;
+}
+
+/* Deep Mind Overlay - Light Mode */
+.dm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    /* Light overlay */
+    backdrop-filter: blur(5px);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.dm-container {
+    background: #ffffff;
+    /* White bg */
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 1200px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    color: #1e293b;
+    /* Dark text */
+}
+
+/* Header */
+.dm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.dm-header h2 {
+    font-size: 1.8rem;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.2rem;
+}
+
+.dm-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    color: #64748b;
+    cursor: pointer;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.dm-close-btn:hover {
+    color: #0f172a;
+}
+
+/* Loading */
+#dmLoading {
+    text-align: center;
+    padding: 4rem 0;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #1e293b;
+    border-top: 5px solid #60a5fa;
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.progress-bar {
+    width: 60%;
+    height: 10px;
+    background: #1e293b;
+    border-radius: 5px;
+    margin: 1rem auto;
+    overflow: hidden;
+}
+
+#dmProgress {
+    height: 100%;
+    background: linear-gradient(to right, #3b82f6, #8b5cf6);
+    transition: width 0.2s;
+}
+
+/* Results Table */
+.dm-table-wrapper {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+#dmTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#dmTable th {
+    background: #334155;
+    color: #e2e8f0;
+    padding: 1rem;
+    text-align: left;
+}
+
+#dmTable td {
+    padding: 1rem;
+    border-bottom: 1px solid #334155;
+    color: #cbd5e1;
+}
+
+#dmTable tr:hover {
+    background: #2d3e5aa1;
+    cursor: pointer;
+}
+
+.dm-action-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Modal */
+#dmModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.dm-modal-content {
+    background: #1e293b;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 800px;
+    position: relative;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    border: 1px solid #475569;
+}
+
+.dm-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #94a3b8;
+}
+
+.dm-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.dm-card {
+    background: #0f172a;
+    padding: 1rem;
+    border-radius: 6px;
+    text-align: center;
+    border: 1px solid #334155;
+}
+
+.dm-card .label {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.dm-card .value {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #f8fafc;
+}
+
+
+/* Main View Saved Strategies */
+#mainSavedStrategiesWrapper {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+    /* Shadow upwards */
+}
+
+#mainSavedStrategies {
+    display: flex;
+    overflow-x: auto;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    /* Space for scrollbar */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+#mainSavedStrategies .strategy-card {
+    flex: 0 0 auto;
+    /* Don't shrink */
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#mainSavedStrategies .strategy-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Parameter Warehouse */
+#warehouseWrapper {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #ecfdf5;
+    /* Mint background */
+    border-top: 1px solid #d1fae5;
+    border-radius: 8px;
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+#warehouseList {
+    display: flex;
+    overflow-x: auto;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+#warehouseList .warehouse-card {
+    flex: 0 0 auto;
+    background: white;
+    border: 1px solid #6ee7b7;
+    /* Green border */
+    border-radius: 8px;
+    padding: 1rem;
+    min-width: 250px;
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
+}
+
+#warehouseList .warehouse-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.wh-action-btn {
+    flex: 1;
+    padding: 4px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+}

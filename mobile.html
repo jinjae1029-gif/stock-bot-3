@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>S25 Ultra Mode</title>
+    <!-- Use the new mobile css -->
+    <link rel="stylesheet" href="css/mobile.css?v=3">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script type="module" src="js/app_v2.js?v=debug3"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- HEADER -->
+        <header>
+            <div class="logo">
+                <span style="font-size:1.5rem;">📊</span> SOXL+QQQ
+            </div>
+            <div class="actions">
+                <button id="btnOrderSheet" class="header-btn">주문표</button>
+                <button id="btnDeepMind" class="header-btn">AI</button>
+                <button id="themeToggle" class="icon-btn">🌙</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- CONFIG PANEL (Collapsible or always visible? Stacking it on top is best for mobile flow) -->
+            <div class="config-panel">
+                <button class="config-toggle-btn"
+                    onclick="document.getElementById('mobileConfigContent').classList.toggle('hidden')">
+                    🛠 설정 및 파라미터 <span style="font-size:0.8rem;">▼</span>
+                </button>
+
+                <div id="mobileConfigContent" class="config-content">
+                    <!-- Default open or closed? Let's leave open for visibility first -->
+                    <!-- Mobile Specific Toggles moved here -->
+                    <div class="mobile-toggles">
+                        <label><input type="checkbox" id="toggleCashChart"> 예수금</label>
+                        <label><input type="checkbox" id="toggleAssetChart"> 총자산</label>
+                        <label><input type="checkbox" id="toggleDDChart"> DD</label>
+                        <label><input type="checkbox" id="toggleRobustness"> Robustness</label>
+                        <label><input type="checkbox" id="toggleSavedStrategies"> 임시보관</label>
+                        <label><input type="checkbox" id="toggleWarehouse"> 창고</label>
+                    </div>
+
+                    <div class="card">
+                        <h3>기본 설정</h3>
+                        <div class="form-grid">
+                            <label>초기자본($) <input type="number" id="initCapital" value="10000"></label>
+                            <label>수수료(%) <input type="number" id="feeRate" value="0" step="0.01"></label>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem;">
+                                <label>시작일 <input type="date" id="startDate" value="2018-01-01"></label>
+                                <label>종료일 <input type="date" id="endDate" value="2025-12-31"></label>
+                            </div>
+
+                            <!-- Date Buttons -->
+                            <div class="date-btn-container">
+                                <div class="date-btn-wrapper"><button class="circle-btn-date"
+                                        id="btnDate1">1</button><span>올해</span></div>
+                                <div class="date-btn-wrapper"><button class="circle-btn-date"
+                                        id="btnDate2">2</button><span>1년</span></div>
+                                <div class="date-btn-wrapper"><button class="circle-btn-date"
+                                        id="btnDate3">3</button><span>3년</span></div>
+                                <div class="date-btn-wrapper"><button class="circle-btn-date"
+                                        id="btnDate4">4</button><span>5년</span></div>
+                                <div class="date-btn-wrapper"><button class="circle-btn-date"
+                                        id="btnDate5">5</button><span>8년</span></div>
+                                <div class="date-btn-wrapper"><button class="circle-btn-date"
+                                        id="btnDate6">6</button><span>전체</span></div>
+                                <div class="date-btn-wrapper"><button class="circle-btn-date"
+                                        id="btnDate7">7</button><span>다음</span></div>
+                            </div>
+
+                            <!-- Real Tier Toggle Switch -->
+                            <div class="switch-container"
+                                style="display:flex; justify-content:center; align-items:center; gap:0.5rem; margin-top:0.5rem;">
+                                <span>Tier 방식</span>
+                                <label class="switch"
+                                    style="position:relative; display:inline-block; width:36px; height:20px;">
+                                    <input type="checkbox" id="toggleRealTier" checked
+                                        style="opacity:0; width:0; height:0;">
+                                    <span class="slider round"
+                                        style="position:absolute; inset:0; background:#cbd5e1; border-radius:20px; transition:.4s;"></span>
+                                </label>
+                                <span style="color:#2563eb;">Real Tier</span>
+                            </div>
+                            <!-- Inline script needs to ensure slider styling works if not using css class correctly or add css for slider -->
+                            <!-- NOTE: The CSS for .switch .slider was added to mobile.css but we need to ensure the HTML structure matches the CSS expectations. 
+                                  Checking mobile.css... yes, slider class is there. 
+                             -->
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="header-safe">🛡 Safe Mode (안전)</h3>
+                        <label>Loc% <input type="number" id="safeBuyLimit" value="3" step="any"></label>
+                        <label>Target% <input type="number" id="safeTarget" value="0.2" step="any"></label>
+                        <label>Hold <input type="number" id="safeTimeCut" value="30" step="any"></label>
+                    </div>
+                    <h4 style="margin:0.5rem 0;">분할 비중 (1~7차)</h4>
+                    <div class="weight-grid" id="safeWeights">
+                        <div class="weight-item"><span>1</span><input type="number" value="0" step="any"></div>
+                        <div class="weight-item"><span>2</span><input type="number" value="20" step="any"></div>
+                        <div class="weight-item"><span>3</span><input type="number" value="20" step="any"></div>
+                        <div class="weight-item"><span>4</span><input type="number" value="20" step="any"></div>
+                        <div class="weight-item"><span>5</span><input type="number" value="20" step="any"></div>
+                        <div class="weight-item"><span>6</span><input type="number" value="20" step="any"></div>
+                        <div class="weight-item"><span>7</span><input type="number" value="0" step="any"></div>
+                        <div class="weight-item"><span>8</span><input type="number" id="safeWeight8" value="0"
+                                step="any" disabled style="opacity:0.3"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="header-offensive">⚔ Offensive Mode (공세)</h3>
+                    <div style="display:flex; gap:0.5rem;">
+                        <label>Loc% <input type="number" id="offBuyLimit" value="4" step="any"></label>
+                        <label>Target% <input type="number" id="offTarget" value="3" step="any"></label>
+                        <label>Hold <input type="number" id="offTimeCut" value="7" step="any"></label>
+                    </div>
+                    <h4 style="margin:0.5rem 0;">분할 비중 (1~7차)</h4>
+                    <div class="weight-grid" id="offWeights">
+                        <div class="weight-item"><span>1</span><input type="number" value="0" step="any"></div>
+                        <div class="weight-item"><span>2</span><input type="number" value="0" step="any"></div>
+                        <div class="weight-item"><span>3</span><input type="number" value="20" step="any"></div>
+                        <div class="weight-item"><span>4</span><input type="number" value="20" step="any"></div>
+                        <div class="weight-item"><span>5</span><input type="number" value="20" step="any"></div>
+                        <div class="weight-item"><span>6</span><input type="number" value="20" step="any"></div>
+                        <div class="weight-item"><span>7</span><input type="number" value="20" step="any"></div>
+                        <div class="weight-item"><span>8</span><input type="number" id="offWeight8" value="0" step="any"
+                                disabled style="opacity:0.3"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>⚖ Rebalancing</h3>
+                    <div style="display:flex; gap:0.5rem;">
+                        <label>이익 +% <input type="number" id="profitAdd" value="70" step="any"></label>
+                        <label>손실 -% <input type="number" id="lossSub" value="20" step="any"></label>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>✈️ Telegram Config</h3>
+                    <label style="font-size:0.8rem; color:#666;">Bot Token</label>
+                    <input type="password" id="tgToken" placeholder="123456:ABC-Def..."
+                        style="width:100%; margin-bottom:0.5rem;">
+                    <label style="font-size:0.8rem; color:#666;">Chat ID</label>
+                    <input type="text" id="tgChatId" placeholder="12345678" style="width:100%;">
+                    <p style="font-size:0.75rem; color:#888; margin-top:4px;">* 로컬에만 저장됩니다 (서버 전송 X)</p>
+                </div>
+
+                <div style="margin-top:1rem; display:flex; flex-direction:column; gap:0.5rem;">
+                    <button id="runBtn" class="primary-btn">시뮬레이션 시작 (RUN)</button>
+                    <button id="btnMobileUseDefaults" class="primary-btn" style="background:#2563eb;">⚙ 현재 설정값 사용 (기본값
+                        저장)</button>
+                    <button id="btnSaveCurrentParams" class="primary-btn" style="background:#10b981;">💾 파라미터 저장
+                        (창고)</button>
+                </div>
+            </div>
+    </div>
+
+    <!-- RESULTS AREA -->
+    <section class="results-area">
+        <!-- Order Sheet -->
+        <div id="orderSheetArea" class="card hidden" style="border: 2px solid #2563eb; background: #f0f9ff;">
+            <!-- Injected by JS -->
+        </div>
+
+        <!-- KPI Grid -->
+        <!-- Reuse IDs for JS -->
+        <div class="kpi-grid">
+            <div class="kpi-card" style="border-top-color: #ef4444;">
+                <div class="label">TOTAL RETURN</div>
+                <div class="value" id="kpiReturn" style="color: #ef4444;">0%</div>
+                <div class="sub" id="kpiSeed">Seed: $10,000</div>
+            </div>
+            <div class="kpi-card" style="border-top-color: #a855f7;">
+                <div class="label">CAGR</div>
+                <div class="value" id="kpiCagr" style="color: #a855f7;">0%</div>
+                <div class="sub">Growth</div>
+            </div>
+            <div class="kpi-card" style="border-top-color: #334155;">
+                <div class="label">FINAL ASSET</div>
+                <div class="value" id="kpiFinal" style="color: #334155;">$0</div>
+            </div>
+            <div class="kpi-card" style="border-top-color: #3b82f6;">
+                <div class="label">MDD</div>
+                <div class="value" id="kpiMdd" style="color: #3b82f6;">0%</div>
+                <div class="sub" id="kpiMddDate">Risk</div>
+            </div>
+            <div class="kpi-card" style="border-top-color: #10b981;">
+                <div class="label">WIN RATE</div>
+                <div class="value" id="kpiWinRate" style="color: #10b981;">0%</div>
+                <div class="sub" id="kpiCount">Count: 0</div>
+            </div>
+            <div class="kpi-card" style="border-top-color: #fbbf24;">
+                <div class="label">SQN</div>
+                <div class="value" id="kpiSqn" style="color: #fbbf24;">0.00</div>
+            </div>
+        </div>
+
+        <!-- ROBUSTNESS (Simplified for Mobile) -->
+        <div id="robustnessReport" class="card hidden">
+            <h3>🔬 Reliability</h3>
+            <span id="rbMainStatus">Waiting...</span>
+            <div id="rbMainLoading" class="hidden">
+                <div style="height:4px; background:#ddd; border-radius:2px; overflow:hidden;">
+                    <div id="rbMainProgress" style="width:0%; height:100%; background:blue;"></div>
+                </div>
+            </div>
+            <div id="rbMainStats" class="hidden">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap:0.5rem;" class="mobile-stats-grid">
+                    <!-- Just key stats -->
+                    <div>Survival: <span id="rbMainSurvival">0%</span></div>
+                    <div>CAGR: <span id="rbMainCagr">0%</span></div>
+                    <div>MDD: <span id="rbMainMdd">0%</span></div>
+                    <div>R2: <span id="rbMainR2">0.00</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SENSITIVITY -->
+        <div id="sensitivityReport" class="card hidden">
+            <h3>🎯 Sensitivity</h3>
+            <div id="senMainLoading" class="hidden">Loading...</div>
+            <div id="senMainContent" class="hidden">
+                <div style="text-align:center;">
+                    CSR: <span id="senMainCsrScore" style="font-size:1.5rem; font-weight:bold; color:blue;">0.00</span>
+                    <div id="senMainCsrText">-</div>
+                </div>
+                <!-- Heatmap might be too small, but we try -->
+                <div id="senMainHeatmap" class="heatmap-grid"
+                    style="display:grid; gap:2px; justify-content:center; margin-top:10px;"></div>
+            </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-container">
+            <table id="ledgerTable">
+                <thead>
+                    <tr>
+                        <th>날짜</th>
+                        <th>종가</th>
+                        <th>매매</th>
+                        <th>등락</th>
+                        <th>순익</th>
+                        <th>자산</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="chart-container hidden" id="containerCash">
+            <canvas id="cashChart"></canvas>
+        </div>
+        <div class="chart-container hidden" id="containerAsset">
+            <canvas id="mainChart"></canvas>
+        </div>
+        <div class="chart-container hidden" id="containerDD">
+            <canvas id="ddChart"></canvas>
+        </div>
+
+    </section>
+    </main>
+
+    <!-- WAREHOUSE & SAVED -->
+    <div id="warehouseWrapper" style="display:none;">
+        <h3>🏭 창고</h3>
+        <div id="warehouseList"></div>
+    </div>
+    <div id="mainSavedStrategiesWrapper" style="display:none;">
+        <h3>📦 보관함</h3>
+        <div id="mainSavedStrategies"></div>
+    </div>
+
+    <!-- DEEP MIND OVERLAY -->
+    <div id="deepMindView" class="hidden dm-overlay">
+        <div class="dm-container">
+            <div class="dm-header">
+                <h2>🧠 Deep Mind</h2>
+                <button id="btnCloseDM" class="dm-close-btn" style="font-size:2rem;">&times;</button>
+            </div>
+            <div style="overflow-y:auto; padding:1rem;">
+                <div id="dmLoading" class="hidden">Analyzing... <div id="dmProgress"></div>
+                </div>
+                <div id="dmResults" class="hidden">
+                    <div id="dmTable"></div> <!-- Table might break, needs css -->
+                    <div id="savedStrategiesView"></div>
+                </div>
+                <!-- Modal is inside DEEP MIND usually? No, it's separate in index.html -->
+            </div>
+        </div>
+    </div>
+
+    <!-- DM MODAL -->
+    <div id="dmModal" class="hidden dm-overlay" style="z-index: 2100;">
+        <div class="dm-container" style="height:auto; max-height:90vh; width:95%;">
+            <div class="dm-header">
+                <h3>Deep Dive</h3>
+                <span id="btnModalClose" style="font-size:2rem;">&times;</span>
+            </div>
+            <div style="padding:1rem; overflow-y:auto;">
+                <div id="dmParamsDisplay"></div>
+                <div id="rbLoading" class="hidden">Loading...</div>
+                <div class="dm-stat-grid">
+                    <div id="rbSurvival"></div>
+                    <div id="rbCagr"></div>
+                    <div id="rbMdd"></div>
+                </div>
+                <div id="dmSensitivityReport" class="hidden">
+                    <h4>Sensitivity</h4>
+                    <div id="senDmCsrScore"></div>
+                    <div id="senDmHeatmap"></div>
+                </div>
+                <!-- Buttons -->
+                <button id="btnDeepDrill" class="primary-btn" style="margin-top:1rem;">💎 Deep Drill</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Toggle is in original HTML but here we removed sidebar. 
+             If JS tries to attach listener to 'sidebarToggle', it might error if element missing.
+             We should duplicate sidebarToggle button hidden or just add it to header if we use it.
+             The index.html had <button id="sidebarToggle">. 
+             We removed it because we use vertical layout. 
+             Let's add a hidden dummy to prevent JS error? Or just add it to header as menu.
+        -->
+    <div style="display:none;">
+        <button id="sidebarToggle"></button>
+    </div>
+
+    </div>
+</body>
+
+</html>
