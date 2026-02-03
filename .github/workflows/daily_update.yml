@@ -2,7 +2,7 @@ name: Daily Data Update & Bot
 
 on:
   schedule:
-    # UTC 23:30 = KST 08:30 (?§Ïùå???ÑÏπ®)
+    # UTC 23:30 = KST 08:30
     - cron: '30 23 * * *'
   workflow_dispatch: # Manual trigger
 
@@ -55,5 +55,5 @@ jobs:
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
-          BOT_USER_ID: "stock-bot-3" # <-- Bot 2 ID
+          BOT_USER_ID: "stock-bot-3"
         run: node daily_bot.js
