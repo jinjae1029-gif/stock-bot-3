@@ -1,13 +1,13 @@
 {
-    "username": "stock-bot-2",
+    "username": "stock-bot-3",
     "telegramChatId": "1915434173",
-    "initialCapital": 185621,
+    "initialCapital": 43917.16,
     "startDate": "2026-01-02",
     "params": {
         "safe": {
-            "buyLimit": 3.7,
-            "target": 1.7,
-            "timeCut": 35,
+            "buyLimit": 3,
+            "target": 0.2,
+            "timeCut": 30,
             "weights": [
                 0,
                 20,
@@ -20,9 +20,9 @@
             ]
         },
         "offensive": {
-            "buyLimit": 2.5,
-            "target": 3.2,
-            "timeCut": 8,
+            "buyLimit": 4,
+            "target": 3,
+            "timeCut": 7,
             "weights": [
                 0,
                 0,
@@ -35,8 +35,8 @@
             ]
         },
         "rebalance": {
-            "profitAdd": 74.8,
-            "lossSub": 29.4
+            "profitAdd": 75,
+            "lossSub": 20
         },
         "feeRate": 0,
         "useRealTier": true
