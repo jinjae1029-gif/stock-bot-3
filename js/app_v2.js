@@ -912,7 +912,11 @@ document.addEventListener('DOMContentLoaded', () => {
             btnSaveSeed.addEventListener('click', () => {
                 const val = document.getElementById('initCapital').value;
                 localStorage.setItem('userSeed', val);
-                alert("초기 시드가 저장되었습니다: $" + val);
+
+                // Trigger Cloud Save
+                if (window.saveToCloud) window.saveToCloud();
+
+                alert("초기 시드가 저장되었습니다 (클라우드 동기화 완료 ☁️): $" + val);
             });
         }
     } catch (criticalError) {
