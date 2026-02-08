@@ -897,7 +897,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('endDate').value = toLocalISO(now);
 
                     seedModal.classList.add('hidden');
-                    btnSaveSeed.classList.remove('hidden'); // Show manual save button
+                    // btnSaveSeed.classList.remove('hidden'); // HIDDEN per user request
 
                     // Show Order Sheet Button
                     const btnOrder = document.getElementById('btnOrderSheet');
@@ -912,17 +912,17 @@ document.addEventListener('DOMContentLoaded', () => {
             btnCloseSeedModal.addEventListener('click', () => seedModal.classList.add('hidden'));
         }
 
-        if (btnSaveSeed) {
-            btnSaveSeed.addEventListener('click', () => {
-                const val = document.getElementById('initCapital').value;
-                localStorage.setItem('userSeed', val);
+        // if (btnSaveSeed) {
+        //     btnSaveSeed.addEventListener('click', () => {
+        //         const val = document.getElementById('initCapital').value;
+        //         localStorage.setItem('userSeed', val);
 
-                // Trigger Cloud Save
-                if (window.saveToCloud) window.saveToCloud();
+        //         // Trigger Cloud Save
+        //         if (window.saveToCloud) window.saveToCloud();
 
-                alert("초기 시드가 저장되었습니다 (클라우드 동기화 완료 ☁️): $" + val);
-            });
-        }
+        //         alert("초기 시드가 저장되었습니다 (클라우드 동기화 완료 ☁️): $" + val);
+        //     });
+        // }
     } catch (criticalError) {
         console.error("CRITICAL APP ERROR:", criticalError);
         alert("애플리케이션 초기화 중 치명적 오류 발생:\n" + criticalError.message);
@@ -2411,12 +2411,12 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSaveParams.addEventListener('click', window.saveCurrentParamsToWarehouse);
     }
 
-    // [New] Cloud Save Button (Seed)
-    const btnSaveSeed = document.getElementById('btnSaveSeed');
-    if (btnSaveSeed) {
-        btnSaveSeed.classList.remove('hidden'); // Show it!
-        btnSaveSeed.addEventListener('click', window.saveToCloud);
-    }
+    // [New] Cloud Save Button (Seed) - DEPRECATED/HIDDEN per user request
+    // const btnSaveSeed = document.getElementById('btnSaveSeed');
+    // if (btnSaveSeed) {
+    //    btnSaveSeed.classList.remove('hidden'); 
+    //    btnSaveSeed.addEventListener('click', window.saveToCloud);
+    // }
 
     // Auto Load from Cloud
     loadFromCloud();
