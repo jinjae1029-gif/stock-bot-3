@@ -525,12 +525,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const forceShowButton = () => {
                 if (toggleMode.checked && btnUseDefaults) {
                     // Check if it's hidden by class or style
-                    if (btnUseDefaults.classList.contains('hidden') || btnUseDefaults.style.display === 'none') {
+                    const style = window.getComputedStyle(btnUseDefaults);
+                    if (btnUseDefaults.classList.contains('hidden') || style.display === 'none') {
                         console.warn("[DEBUG] Safety Fallback: Force showing btnUseDefaults (Interval)");
                         btnUseDefaults.classList.remove('hidden');
-                        btnUseDefaults.style.display = 'block';
-                        btnUseDefaults.style.visibility = 'visible'; // Ensure visibility
-                        btnUseDefaults.style.opacity = '1'; // Ensure opacity
+                        btnUseDefaults.style.setProperty('display', 'block', 'important');
+                        btnUseDefaults.style.setProperty('visibility', 'visible', 'important');
+                        btnUseDefaults.style.setProperty('opacity', '1', 'important');
                     }
                 }
             };
@@ -539,6 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(forceShowButton, 500);
             setTimeout(forceShowButton, 1000);
             setTimeout(forceShowButton, 2000);
+            setTimeout(forceShowButton, 5000); // Extremely late check due to slow load?
 
             // Also run it on click just in case
             toggleMode.addEventListener('click', () => setTimeout(forceShowButton, 50));
