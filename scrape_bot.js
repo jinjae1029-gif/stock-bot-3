@@ -8,6 +8,15 @@ const TARGET_BOT_ID = 'stock-bot-3';
 const TG_TOKEN = process.env.TG_TOKEN;
 const FIREBASE_CREDENTIALS = process.env.FIREBASE_CREDENTIALS;
 
+// --- ID MAPPING ---
+const ID_MAP = {
+    'stock-bot-1': 1915434173,
+    'stock-bot-2': 1915434173,
+    'stock-bot-3': 1915434173,
+    'stock-bot-4': 7138657762,
+    'stock-bot-5': 7138657762
+};
+
 let db = null;
 
 if (FIREBASE_CREDENTIALS) {
@@ -22,54 +31,43 @@ if (FIREBASE_CREDENTIALS) {
     }
 }
 
-async function debugFirestore() {
-    if (!db) {
-        console.error("❌ DB not initialized");
-        return;
-    }
-    console.log("🔍 DEBUG: Listing all users in 'users' collection...");
-    try {
-        const snapshot = await db.collection('users').get();
-        if (snapshot.empty) {
-            console.log("⚠️ 'users' collection is EMPTY.");
-            return;
-        }
-        console.log(`✅ Found ${snapshot.size} documents in 'users'.`);
+// --- RESTORE FUNCTION ---
+async function restoreChatIds() {
+    if (!db) return;
+    console.log("🛠️ Starting Chat ID Restoration...");
+    const batch = db.batch();
 
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            console.log(`- Doc ID: ${doc.id}`);
-            console.log(`  Fields: ${Object.keys(data).join(', ')}`);
-            if (data.telegramChatId) console.log(`  -> Has telegramChatId: ${data.telegramChatId}`);
-            if (data.tgChatId) console.log(`  -> Has tgChatId: ${data.tgChatId}`);
-            if (data.chatId) console.log(`  -> Has chatId: ${data.chatId}`);
-        });
+    for (const [botId, chatId] of Object.entries(ID_MAP)) {
+        const ref = db.collection('users').doc(botId);
+        // MERGE update to preserve other fields
+        batch.set(ref, { telegramChatId: chatId, lastUpdated: new Date().toISOString() }, { merge: true });
+        console.log(`Prepared update for ${botId} -> ${chatId}`);
+    }
+
+    try {
+        await batch.commit();
+        console.log("✅ All Chat IDs restored successfully!");
     } catch (e) {
-        console.error("❌ Error listing users:", e);
+        console.error("❌ Restore failed:", e);
     }
 }
 
 async function getChatIdAndUid() {
     if (!db) return null;
     try {
-        // DEBUG FIRST
-        await debugFirestore();
-
         // 1. Try finding by ID directly
         let doc = await db.collection('users').doc(TARGET_BOT_ID).get();
-        if (doc.exists && (doc.data().telegramChatId || doc.data().chatId || doc.data().tgChatId)) {
-            const d = doc.data();
-            return { uid: TARGET_BOT_ID, chatId: d.telegramChatId || d.chatId || d.tgChatId };
+        if (doc.exists && doc.data().telegramChatId) {
+            return { uid: TARGET_BOT_ID, chatId: doc.data().telegramChatId };
         }
 
-        // 2. Iterate
+        // 2. Iterate all users to find one with a Chat ID
         const snapshot = await db.collection('users').get();
         let found = null;
         snapshot.forEach(doc => {
             const data = doc.data();
-            const cid = data.telegramChatId || data.chatId || data.tgChatId;
-            if (cid) {
-                if (!found) found = { uid: doc.id, chatId: cid };
+            if (data.telegramChatId) {
+                if (!found) found = { uid: doc.id, chatId: data.telegramChatId };
             }
         });
         return found;
@@ -95,7 +93,10 @@ async function sendTelegram(chatId, text) {
 }
 
 (async () => {
-    console.log("🚀 Starting Scraper Bot (Bot 3) - DEBUG MODE...");
+    console.log("🚀 Starting Scraper Bot (Bot 3)...");
+
+    // 0. RESTORE IDs FIRST
+    await restoreChatIds();
 
     // 1. Get Chat ID & UID
     const userInfo = await getChatIdAndUid();

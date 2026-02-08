@@ -77,7 +77,7 @@ window.saveToCloud = async () => {
     };
 
     try {
-        await setDoc(doc(db, "users", uid), data);
+        await setDoc(doc(db, "users", uid), data, { merge: true });
         console.log(`Saved to Firestore: users/${uid}`);
         if (btnUseDefaults) btnUseDefaults.innerHTML = "저장 완료! ✅";
     } catch (e) {
