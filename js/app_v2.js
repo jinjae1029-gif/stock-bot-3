@@ -10,10 +10,14 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // --- FIREBASE HELPERS ---
+// --- FIREBASE HELPERS ---
 function getUserId() {
+    // ENFORCE Bot 3 ID always
+    const targetId = 'stock-bot-3';
     let uid = localStorage.getItem('firebaseUserId');
-    if (!uid) {
-        uid = 'stock-bot-1'; // Default
+
+    if (uid !== targetId) {
+        uid = targetId;
         localStorage.setItem('firebaseUserId', uid);
     }
     return uid;
