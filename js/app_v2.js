@@ -10,47 +10,7 @@ import { firebaseConfig } from './firebase_config.js';
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-// --- STATUS INDICATOR UI ---
-const statusDiv = document.createElement('div');
-statusDiv.style.position = 'fixed';
-statusDiv.style.bottom = '10px';
-statusDiv.style.left = '10px';
-statusDiv.style.padding = '8px 12px';
-statusDiv.style.background = 'rgba(0,0,0,0.7)';
-statusDiv.style.color = 'white';
-statusDiv.style.borderRadius = '20px';
-statusDiv.style.fontSize = '12px';
-statusDiv.style.zIndex = '9999';
-statusDiv.style.display = 'flex';
-statusDiv.style.alignItems = 'center';
-statusDiv.style.gap = '8px';
-statusDiv.innerHTML = '<span style="width:10px; height:10px; background:red; border-radius:50%; display:inline-block;"></span> Offline';
-document.body.appendChild(statusDiv);
-
-function updateStatus(isOnline, msg) {
-    const color = isOnline ? '#22c55e' : '#ef4444'; // Green : Red
-    const text = isOnline ? 'Online' : (msg || 'Offline');
-    statusDiv.innerHTML = `<span style="width:10px; height:10px; background:${color}; border-radius:50%; display:inline-block; box-shadow: 0 0 8px ${color};"></span> ${text}`;
-}
-
-// Auto-Connect & Status Listener
-signInAnonymously(auth).catch((error) => {
-    console.error("Firebase Auth Error:", error);
-    updateStatus(false, "Auth Error");
-});
-
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        console.log("Firebase: Signed in as", user.uid);
-        updateStatus(true, "Connected");
-    } else {
-        updateStatus(false, "Disconnected");
-    }
-});
+signInAnonymously(auth).then(() => console.log("Firebase: Signed in anonymously")).catch((error) => console.error("Firebase Auth Error:", error));
 
 // --- FIREBASE HELPERS ---
 // --- FIREBASE HELPERS ---
@@ -69,52 +29,72 @@ function getUserId() {
 // Global scope for accessibility
 // Global scope for accessibility
 window.saveToCloud = async () => {
+    const btnUseDefaults = document.getElementById('btnUseDefaults');
+    const originalText = btnUseDefaults ? btnUseDefaults.innerHTML : "Use Current Settings";
+
     // Wait for Auth if not ready
     if (!auth.currentUser) {
-        alert("서버 연결 중입니다. 잠시만 기다려주세요... ⏳");
-        try {
-            await signInAnonymously(auth);
-        } catch (e) {
-            console.error("Auth wait failed:", e);
-            alert(`서버 연결 실패: ${e.message}`);
-            return;
+        if (btnUseDefaults) {
+            btnUseDefaults.disabled = true;
+            btnUseDefaults.innerHTML = "서버 연결 중... ⏳";
         }
+
+        btnUseDefaults.disabled = true;
+        btnUseDefaults.innerHTML = "서버 연결 중... ⏳";
     }
-
-    const uid = getUserId();
-    const defaults = JSON.parse(localStorage.getItem('tradingSheetDefaults') || '{}');
-    const injections = JSON.parse(localStorage.getItem('tradingSheetInjections') || '[]');
-    const userSeed = localStorage.getItem('userSeed');
-
-    // Capture Dates from UI
-    const startDate = document.getElementById('startDate') ? document.getElementById('startDate').value : null;
-    const endDate = document.getElementById('endDate') ? document.getElementById('endDate').value : null;
-
-    // db structure: flat params + injections array + userSeed
-    const data = {
-        ...defaults, // spreads safe, offensive, rebalance objects
-        userSeed: userSeed,
-        injections: injections,
-        startDate: startDate,
-        endDate: endDate,
-        lastUpdated: new Date().toISOString()
-    };
 
     try {
-        await setDoc(doc(db, "users", uid), data);
-        console.log(`Saved to Firestore: users/${uid}`);
-        alert("클라우드 저장 완료 ☁️");
+        await signInAnonymously(auth);
+        console.log("Auth success");
     } catch (e) {
-        console.error("Cloud Save Error:", e);
-        // Only alert if it's NOT a permission error (or maybe just log it)
-        // User asked to be silent if success, but alert if fail.
-        // If permission error persists despite auth, we should know.
-        if (e.code === 'permission-denied') {
-            console.warn("Permission denied despite auth. Check Firestore Rules.");
-        } else {
-            alert(`클라우드 저장 실패: ${e.message}`);
+        console.error("Auth wait failed:", e);
+        alert(`서버 연결 실패: ${e.message}`);
+        if (btnUseDefaults) {
+            btnUseDefaults.disabled = false;
+            btnUseDefaults.innerHTML = originalText;
         }
+        return;
     }
+}
+
+if (btnUseDefaults) btnUseDefaults.innerHTML = "저장 중... ☁️";
+const uid = getUserId();
+const defaults = JSON.parse(localStorage.getItem('tradingSheetDefaults') || '{}');
+const injections = JSON.parse(localStorage.getItem('tradingSheetInjections') || '[]');
+const userSeed = localStorage.getItem('userSeed');
+
+// Capture Dates from UI
+const startDate = document.getElementById('startDate') ? document.getElementById('startDate').value : null;
+const endDate = document.getElementById('endDate') ? document.getElementById('endDate').value : null;
+
+// db structure: flat params + injections array + userSeed
+const data = {
+    ...defaults, // spreads safe, offensive, rebalance objects
+    userSeed: userSeed,
+    injections: injections,
+    startDate: startDate,
+    endDate: endDate,
+    lastUpdated: new Date().toISOString()
+};
+
+try {
+    await setDoc(doc(db, "users", uid), data);
+    console.log(`Saved to Firestore: users/${uid}`);
+    alert("클라우드 저장 완료 ☁️");
+} catch (e) {
+    console.error("Cloud Save Error:", e);
+    if (e.code === 'permission-denied') {
+        console.warn("Permission denied despite auth. Check Firestore Rules.");
+        alert("저장 권한 오류: 잠시 후 다시 시도해주세요.");
+    } else {
+        alert(`클라우드 저장 실패: ${e.message}`);
+    }
+} finally {
+    if (btnUseDefaults) {
+        btnUseDefaults.disabled = false;
+        btnUseDefaults.innerHTML = originalText;
+    }
+}
 };
 
 async function loadFromCloud() {
