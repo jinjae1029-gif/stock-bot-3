@@ -31,6 +31,7 @@ function getUserId() {
 window.saveToCloud = async () => {
     // Wait for Auth if not ready
     if (!auth.currentUser) {
+        alert("서버 연결 중입니다. 잠시만 기다려주세요... ⏳");
         console.log("Waiting for auth...");
         try {
             await new Promise((resolve, reject) => {
