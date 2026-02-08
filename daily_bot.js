@@ -137,7 +137,7 @@ async function main() {
             params = {
                 initialCapital: parseFloat(user.userSeed || user.initialCapital || 10000),
                 startDate: getStartDate(user),
-                endDate: new Date().toISOString().split('T')[0],
+                endDate: SOXL_DATA.length > 0 ? SOXL_DATA[SOXL_DATA.length - 1].date : new Date().toISOString().split('T')[0],
                 safe: user.safe || user.params?.safe || {},
                 offensive: user.offensive || user.params?.offensive || {},
                 rebalance: user.rebalance || user.params?.rebalance || {},
@@ -148,7 +148,7 @@ async function main() {
             params = {
                 initialCapital: parseFloat(user.initialCapital || 10000),
                 startDate: user.startDate || "2023-01-01",
-                endDate: new Date().toISOString().split('T')[0],
+                endDate: SOXL_DATA.length > 0 ? SOXL_DATA[SOXL_DATA.length - 1].date : new Date().toISOString().split('T')[0],
                 safe: user.params?.safe || {},
                 offensive: user.params?.offensive || {},
                 rebalance: user.params?.rebalance || {},
