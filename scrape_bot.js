@@ -8,15 +8,6 @@ const TARGET_BOT_ID = 'stock-bot-3';
 const TG_TOKEN = process.env.TG_TOKEN;
 const FIREBASE_CREDENTIALS = process.env.FIREBASE_CREDENTIALS;
 
-// --- ID MAPPING ---
-const ID_MAP = {
-    'stock-bot-1': 1915434173,
-    'stock-bot-2': 1915434173,
-    'stock-bot-3': 1915434173,
-    'stock-bot-4': 7138657762,
-    'stock-bot-5': 7138657762
-};
-
 let db = null;
 
 if (FIREBASE_CREDENTIALS) {
@@ -28,27 +19,6 @@ if (FIREBASE_CREDENTIALS) {
         db = admin.firestore();
     } catch (e) {
         console.error("Firebase Init Error:", e.message);
-    }
-}
-
-// --- RESTORE FUNCTION ---
-async function restoreChatIds() {
-    if (!db) return;
-    console.log("🛠️ Starting Chat ID Restoration...");
-    const batch = db.batch();
-
-    for (const [botId, chatId] of Object.entries(ID_MAP)) {
-        const ref = db.collection('users').doc(botId);
-        // MERGE update to preserve other fields
-        batch.set(ref, { telegramChatId: chatId, lastUpdated: new Date().toISOString() }, { merge: true });
-        console.log(`Prepared update for ${botId} -> ${chatId}`);
-    }
-
-    try {
-        await batch.commit();
-        console.log("✅ All Chat IDs restored successfully!");
-    } catch (e) {
-        console.error("❌ Restore failed:", e);
     }
 }
 
@@ -95,9 +65,6 @@ async function sendTelegram(chatId, text) {
 (async () => {
     console.log("🚀 Starting Scraper Bot (Bot 3)...");
 
-    // 0. RESTORE IDs FIRST
-    await restoreChatIds();
-
     // 1. Get Chat ID & UID
     const userInfo = await getChatIdAndUid();
     if (!userInfo) {
@@ -130,7 +97,8 @@ async function sendTelegram(chatId, text) {
 
         // 6. Wait for simulation
         console.log("Waiting for simulation...");
-        await page.waitForFunction(() => window.lastFinalState && document.getElementById('totalAsset'), { timeout: 30000 });
+        // CHANGED: totalAsset -> kpiFinal (Correct ID), added timeout 60s
+        await page.waitForFunction(() => window.lastFinalState && document.getElementById('kpiFinal'), { timeout: 60000 });
 
         // 7. Ensure "Trading Sheet" Mode (Toggle ON)
         const toggle = await page.$('#toggleMode');
