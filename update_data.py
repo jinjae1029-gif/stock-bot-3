@@ -11,11 +11,8 @@ import sys
 def fetch_data(ticker_symbol):
     print(f"Fetching {ticker_symbol}...")
     try:
-        session = requests.Session()
-        session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        })
-        dat = yf.Ticker(ticker_symbol, session=session).history(start="2010-01-01", auto_adjust=False)
+        # Solution: Let YF handle session internally (avoid conflict with curl_cffi)
+        dat = yf.Ticker(ticker_symbol).history(start="2010-01-01", auto_adjust=False)
         if dat.empty:
             print(f"⚠️ Warning: {ticker_symbol} returned empty dataframe.")
             return None
