@@ -522,13 +522,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // SAFETY FALLBACK: If toggle is checked but button hidden, force show it after delay
-            setTimeout(() => {
-                if (toggleMode.checked && btnUseDefaults && btnUseDefaults.classList.contains('hidden')) {
-                    console.warn("[DEBUG] Safety Fallback: Force showing btnUseDefaults");
-                    btnUseDefaults.classList.remove('hidden');
-                    btnUseDefaults.style.display = 'block';
+            const forceShowButton = () => {
+                if (toggleMode.checked && btnUseDefaults) {
+                    // Check if it's hidden by class or style
+                    if (btnUseDefaults.classList.contains('hidden') || btnUseDefaults.style.display === 'none') {
+                        console.warn("[DEBUG] Safety Fallback: Force showing btnUseDefaults (Interval)");
+                        btnUseDefaults.classList.remove('hidden');
+                        btnUseDefaults.style.display = 'block';
+                        btnUseDefaults.style.visibility = 'visible'; // Ensure visibility
+                        btnUseDefaults.style.opacity = '1'; // Ensure opacity
+                    }
                 }
-            }, 500);
+            };
+
+            // Run fallback multiple times to ensure it catches any late UI updates
+            setTimeout(forceShowButton, 500);
+            setTimeout(forceShowButton, 1000);
+            setTimeout(forceShowButton, 2000);
+
+            // Also run it on click just in case
+            toggleMode.addEventListener('click', () => setTimeout(forceShowButton, 50));
         }
 
         // "Use" Button Handler (Legacy removed, using shared saveDefaults below)
