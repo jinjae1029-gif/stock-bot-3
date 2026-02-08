@@ -71,6 +71,7 @@ window.saveToCloud = async () => {
     try {
         await setDoc(doc(db, "users", uid), data);
         console.log(`Saved to Firestore: users/${uid}`);
+        alert("클라우드 저장 완료 ☁️");
     } catch (e) {
         console.error("Cloud Save Error:", e);
         // Only alert if it's NOT a permission error (or maybe just log it)
