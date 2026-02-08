@@ -46,8 +46,19 @@ async function sendTelegram(chatId, text) {
 }
 
 // Helper: Start Date Fallback
+// Helper: Start Date Fallback (Matches app_v2.js setTradingSheetDates)
 function getStartDate(userConfig) {
-    return userConfig.startDate || "2023-01-01";
+    if (userConfig.startDate) return userConfig.startDate;
+
+    // Default to Jan 1 of the Last Data Year
+    if (SOXL_DATA.length > 0) {
+        const lastDate = SOXL_DATA[SOXL_DATA.length - 1].date;
+        const year = lastDate.split('-')[0];
+        return `${year}-01-01`;
+    }
+
+    // Ultimate Fallback
+    return new Date().getFullYear() + "-01-01";
 }
 
 async function main() {
@@ -226,6 +237,13 @@ async function main() {
             msg += `현재 주식 보유량: ${totalQty}주 (${currentTier}T)\n`;
             msg += `이번 사이클 시드: $${seedDisp}\n`;
             msg += `총자산 (전일종가): $${finalBal}\n`;
+
+            // Debug Info (User Request for verification)
+            msg += `\n🔍 <b>Setting Info</b>\n`;
+            msg += `Start: ${params.startDate} ~ ${params.endDate}\n`;
+            msg += `Seed: $${Math.floor(params.initialCapital)}\n`;
+            msg += `Use Saved Params: ${user.source === 'firebase' ? '✅ Yes' : '❌ No (Default)'}\n`;
+
             msg += `기준 데이터: ${lastDataDate}\n`; // Helpful info
 
             await sendTelegram(chatId, msg);
