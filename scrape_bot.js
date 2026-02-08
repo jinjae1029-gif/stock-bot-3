@@ -22,22 +22,54 @@ if (FIREBASE_CREDENTIALS) {
     }
 }
 
+async function debugFirestore() {
+    if (!db) {
+        console.error("❌ DB not initialized");
+        return;
+    }
+    console.log("🔍 DEBUG: Listing all users in 'users' collection...");
+    try {
+        const snapshot = await db.collection('users').get();
+        if (snapshot.empty) {
+            console.log("⚠️ 'users' collection is EMPTY.");
+            return;
+        }
+        console.log(`✅ Found ${snapshot.size} documents in 'users'.`);
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            console.log(`- Doc ID: ${doc.id}`);
+            console.log(`  Fields: ${Object.keys(data).join(', ')}`);
+            if (data.telegramChatId) console.log(`  -> Has telegramChatId: ${data.telegramChatId}`);
+            if (data.tgChatId) console.log(`  -> Has tgChatId: ${data.tgChatId}`);
+            if (data.chatId) console.log(`  -> Has chatId: ${data.chatId}`);
+        });
+    } catch (e) {
+        console.error("❌ Error listing users:", e);
+    }
+}
+
 async function getChatIdAndUid() {
     if (!db) return null;
     try {
+        // DEBUG FIRST
+        await debugFirestore();
+
         // 1. Try finding by ID directly
         let doc = await db.collection('users').doc(TARGET_BOT_ID).get();
-        if (doc.exists && doc.data().telegramChatId) {
-            return { uid: TARGET_BOT_ID, chatId: doc.data().telegramChatId };
+        if (doc.exists && (doc.data().telegramChatId || doc.data().chatId || doc.data().tgChatId)) {
+            const d = doc.data();
+            return { uid: TARGET_BOT_ID, chatId: d.telegramChatId || d.chatId || d.tgChatId };
         }
 
-        // 2. Iterate all users to find one with a Chat ID
+        // 2. Iterate
         const snapshot = await db.collection('users').get();
         let found = null;
         snapshot.forEach(doc => {
             const data = doc.data();
-            if (data.telegramChatId) {
-                if (!found) found = { uid: doc.id, chatId: data.telegramChatId };
+            const cid = data.telegramChatId || data.chatId || data.tgChatId;
+            if (cid) {
+                if (!found) found = { uid: doc.id, chatId: cid };
             }
         });
         return found;
@@ -63,7 +95,7 @@ async function sendTelegram(chatId, text) {
 }
 
 (async () => {
-    console.log("🚀 Starting Scraper Bot (Bot 3)...");
+    console.log("🚀 Starting Scraper Bot (Bot 3) - DEBUG MODE...");
 
     // 1. Get Chat ID & UID
     const userInfo = await getChatIdAndUid();
