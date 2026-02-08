@@ -3,11 +3,14 @@ import { SOXL_DATA, QQQ_DATA } from './data.js';
 import { runDeepMind, runRobustnessTest, runSensitivityTest, calculateSQN } from './deep_mind.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { firebaseConfig } from './firebase_config.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+signInAnonymously(auth).then(() => console.log("Firebase: Signed in anonymously")).catch((error) => console.error("Firebase Auth Error:", error));
 
 // --- FIREBASE HELPERS ---
 // --- FIREBASE HELPERS ---
@@ -349,9 +352,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isTradingSheet) {
                     // -> TRADING SHEET MODE
                     // 1. Show "Use" button, Hide "Warehouse/Saved" toggles
-                    btnUseDefaults.classList.remove('hidden');
-                    if (toggleWarehouse) toggleWarehouse.parentElement.style.display = 'none';
-                    if (toggleSaved) toggleSaved.parentElement.style.display = 'none';
+                    if (btnUseDefaults) {
+                        btnUseDefaults.classList.remove('hidden');
+                        btnUseDefaults.style.display = 'block'; // Force display
+                    }
+                    if (toggleWarehouse && toggleWarehouse.parentElement) toggleWarehouse.parentElement.style.display = 'none';
+                    if (toggleSaved && toggleSaved.parentElement) toggleSaved.parentElement.style.display = 'none';
                     if (savedStratWrapper) savedStratWrapper.style.display = 'none';
 
                     // 2. Button Visibility Logic
@@ -367,6 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // 4. Trigger Seed Logic (if not set?) or just Date Logic?
                     setTradingSheetDates();
+
 
                     if (defaults) {
                         try {
@@ -429,24 +436,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 } else {
                     // -> BACKTESTER MODE
-                    // 1. Restore UI
-                    btnUseDefaults.classList.add('hidden');
-
-                    // Only show Warehouse/Saved toggles if they exist
-                    if (toggleWarehouse) toggleWarehouse.parentElement.style.display = '';
-                    if (toggleSaved) toggleSaved.parentElement.style.display = '';
-
-                    // Only Show Saved Wrapper IF Checkbox is Checked
-                    if (savedStratWrapper) {
-                        savedStratWrapper.style.display = toggleSaved.checked ? 'block' : 'none';
-                        if (!toggleSaved.checked) savedStratWrapper.classList.add('hidden');
-                        else savedStratWrapper.classList.remove('hidden');
+                    // Hide "Use" button, Show "Warehouse/Saved"
+                    if (btnUseDefaults) {
+                        btnUseDefaults.classList.add('hidden');
+                        btnUseDefaults.style.display = 'none'; // Force hide
                     }
+                    if (toggleWarehouse && toggleWarehouse.parentElement) toggleWarehouse.parentElement.style.display = 'flex'; // Or original display
+                    if (toggleSaved && toggleSaved.parentElement) toggleSaved.parentElement.style.display = 'flex';
+                    if (savedStratWrapper) savedStratWrapper.style.display = 'block';
 
-                    // 2. Hide "Seed/Cash Change" Buttons
+                    // Hide Injection Buttons
                     if (document.getElementById('btnInjSeed')) document.getElementById('btnInjSeed').classList.add('hidden');
                     if (document.getElementById('btnInjCash')) document.getElementById('btnInjCash').classList.add('hidden');
-
                     // 3. Hide Order Sheet Button AND Content Area
                     btnOrderSheet.classList.add('hidden');
                     const osArea = document.getElementById('orderSheetArea');
@@ -722,7 +723,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tgToken) localStorage.setItem('tgToken', tgToken);
             if (tgChatId) localStorage.setItem('tgChatId', tgChatId);
 
-            alert("현재 설정(시드, 텔레그램, 날짜 포함)이 '기본값'으로 저장되었습니다.\n(클라우드 동기화 완료 ☁️)");
+            // alert("현재 설정(시드, 텔레그램, 날짜 포함)이 '기본값'으로 저장되었습니다.\n(클라우드 동기화 완료 ☁️)");
 
             // Also run?
             runBacktest();
@@ -735,135 +736,114 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnUseDefaults) {
             btnUseDefaults.addEventListener('click', saveDefaults);
         }
-    };
 
+        // Mobile Auto-Load Logic (If toggleMode is missing)
+        if (!toggleMode) {
 
-    // "Use" Button Handler (PC) - Ensure only ONE listener executes this logic
-    // The duplicate listener at L485 should be removed or ignored in favor of this one if this file is overwritten.
-    // Since I am replacing the LATTER part, this will define the function used.
-    // Users might have 2 listeners attached if I don't remove one. 
-    // L799 attaches saveDefaults.
-    if (btnUseDefaults) {
-        // Cleanest way: assign validation to onclick if possible, or just add new one.
-        // Since this replaces existing code block, it's fine.
-        // Note: The previous listener (L485) is still there in the full file.
-        // I should probably Comment Out the previous listener in a separate edit if I want to be clean.
-        // But for now, ensuring THIS function calls saveToCloud covers the case where THIS listener fires.
-        // If BOTH fire, both save. Better than NONE saving.
-        btnUseDefaults.addEventListener('click', saveDefaults);
-    }
+            // Assume Mobile Context: Load Defaults on Start
+            const defaults = localStorage.getItem('tradingSheetDefaults');
 
-    // "Use" Button Handler (Mobile)
-    if (btnMobileUseDefaults) {
-        btnMobileUseDefaults.addEventListener('click', saveDefaults);
-    }
+            // Set Default Dates for Trading Sheet style (Baseline)
+            setTradingSheetDates();
 
-    // Mobile Auto-Load Logic (If toggleMode is missing)
-    if (!toggleMode) {
-        // Assume Mobile Context: Load Defaults on Start
-        const defaults = localStorage.getItem('tradingSheetDefaults');
-
-        // Set Default Dates for Trading Sheet style (Baseline)
-        setTradingSheetDates();
-
-        if (defaults) {
-            try {
-                const p = JSON.parse(defaults);
-                // Safe
-                document.getElementById('safeBuyLimit').value = p.safe.buyLimit;
-                document.getElementById('safeTarget').value = p.safe.target;
-                document.getElementById('safeTimeCut').value = p.safe.timeCut;
-                // Offensive
-                document.getElementById('offBuyLimit').value = p.offensive.buyLimit;
-                document.getElementById('offTarget').value = p.offensive.target;
-                document.getElementById('offTimeCut').value = p.offensive.timeCut;
-                // Rebalance
-                document.getElementById('profitAdd').value = p.rebalance.profitAdd;
-                document.getElementById('lossSub').value = p.rebalance.lossSub;
-                // Weights
-                const setWeights = (prefix, valArr) => {
-                    const container = document.getElementById(prefix === 'safe' ? 'safeWeights' : 'offWeights');
-                    if (!container) return;
-                    const inputs = container.querySelectorAll('input');
-                    valArr.forEach((v, i) => { if (inputs[i]) inputs[i].value = v; });
-                };
-                if (p.safe.weights) setWeights('safe', p.safe.weights);
-                if (p.offensive.weights) setWeights('off', p.offensive.weights);
-                // Real Tier
-                if (p.useRealTier !== undefined) {
-                    const rtToggle = document.getElementById('toggleRealTier');
-                    if (rtToggle) {
-                        rtToggle.checked = p.useRealTier;
-                        updateTierInputs();
+            if (defaults) {
+                try {
+                    const p = JSON.parse(defaults);
+                    // Safe
+                    document.getElementById('safeBuyLimit').value = p.safe.buyLimit;
+                    document.getElementById('safeTarget').value = p.safe.target;
+                    document.getElementById('safeTimeCut').value = p.safe.timeCut;
+                    // Offensive
+                    document.getElementById('offBuyLimit').value = p.offensive.buyLimit;
+                    document.getElementById('offTarget').value = p.offensive.target;
+                    document.getElementById('offTimeCut').value = p.offensive.timeCut;
+                    // Rebalance
+                    document.getElementById('profitAdd').value = p.rebalance.profitAdd;
+                    document.getElementById('lossSub').value = p.rebalance.lossSub;
+                    // Weights
+                    const setWeights = (prefix, valArr) => {
+                        const container = document.getElementById(prefix === 'safe' ? 'safeWeights' : 'offWeights');
+                        if (!container) return;
+                        const inputs = container.querySelectorAll('input');
+                        valArr.forEach((v, i) => { if (inputs[i]) inputs[i].value = v; });
+                    };
+                    if (p.safe.weights) setWeights('safe', p.safe.weights);
+                    if (p.offensive.weights) setWeights('off', p.offensive.weights);
+                    // Real Tier
+                    if (p.useRealTier !== undefined) {
+                        const rtToggle = document.getElementById('toggleRealTier');
+                        if (rtToggle) {
+                            rtToggle.checked = p.useRealTier;
+                            updateTierInputs();
+                        }
                     }
-                }
-                // Start Date Restoration
-                if (p.startDate) {
-                    document.getElementById('startDate').value = p.startDate;
-                }
-            } catch (e) { console.error("Mobile load defaults error", e); }
-        }
-
-        // Load Seed
-        const savedSeed = localStorage.getItem('userSeed');
-        if (savedSeed) {
-            document.getElementById('initCapital').value = savedSeed;
-        }
-    }
-
-    // Modal Logic (Keep existing, slightly modified trigger)
-    // Removed old btnTradingSheet listener.
-
-    if (btnSaveModalSeed) {
-        btnSaveModalSeed.addEventListener('click', () => {
-            const val = parseFloat(document.getElementById('modalSeedInput').value);
-            if (val) {
-                localStorage.setItem('userSeed', val);
-                document.getElementById('initCapital').value = val;
-
-                // Set Date: Jan 1 to Today (Local Time correct)
-                const now = new Date();
-                const start = new Date(now.getFullYear(), 0, 1);
-                // Fix Timezone offset for YYYY-MM-DD
-                const toLocalISO = (d) => {
-                    const offset = d.getTimezoneOffset() * 60000;
-                    return new Date(d - offset).toISOString().split('T')[0];
-                };
-
-                document.getElementById('startDate').value = toLocalISO(start);
-                document.getElementById('endDate').value = toLocalISO(now);
-
-                seedModal.classList.add('hidden');
-                // btnSaveSeed.classList.remove('hidden'); // HIDDEN per user request
-
-                // Show Order Sheet Button
-                const btnOrder = document.getElementById('btnOrderSheet');
-                if (btnOrder) btnOrder.classList.remove('hidden');
-
-                runBacktest();
+                    // Start Date Restoration
+                    if (p.startDate) {
+                        document.getElementById('startDate').value = p.startDate;
+                    }
+                } catch (e) { console.error("Mobile load defaults error", e); }
             }
-        });
+
+            // Load Seed
+            const savedSeed = localStorage.getItem('userSeed');
+            if (savedSeed) {
+                document.getElementById('initCapital').value = savedSeed;
+            }
+        }
+
+        // Modal Logic (Keep existing, slightly modified trigger)
+        // Removed old btnTradingSheet listener.
+
+        if (btnSaveModalSeed) {
+            btnSaveModalSeed.addEventListener('click', () => {
+                const val = parseFloat(document.getElementById('modalSeedInput').value);
+                if (val) {
+                    localStorage.setItem('userSeed', val);
+                    document.getElementById('initCapital').value = val;
+
+                    // Set Date: Jan 1 to Today (Local Time correct)
+                    const now = new Date();
+                    const start = new Date(now.getFullYear(), 0, 1);
+                    // Fix Timezone offset for YYYY-MM-DD
+                    const toLocalISO = (d) => {
+                        const offset = d.getTimezoneOffset() * 60000;
+                        return new Date(d - offset).toISOString().split('T')[0];
+                    };
+
+                    document.getElementById('startDate').value = toLocalISO(start);
+                    document.getElementById('endDate').value = toLocalISO(now);
+
+                    seedModal.classList.add('hidden');
+                    // btnSaveSeed.classList.remove('hidden'); // HIDDEN per user request
+
+                    // Show Order Sheet Button
+                    const btnOrder = document.getElementById('btnOrderSheet');
+                    if (btnOrder) btnOrder.classList.remove('hidden');
+
+                    runBacktest();
+                }
+            });
+        }
+
+        if (btnCloseSeedModal) {
+            btnCloseSeedModal.addEventListener('click', () => seedModal.classList.add('hidden'));
+        }
+
+        // if (btnSaveSeed) {
+        //     btnSaveSeed.addEventListener('click', () => {
+        //         const val = document.getElementById('initCapital').value;
+        //         localStorage.setItem('userSeed', val);
+
+        //         // Trigger Cloud Save
+        //         if (window.saveToCloud) window.saveToCloud();
+
+        //         alert("초기 시드가 저장되었습니다 (클라우드 동기화 완료 ☁️): $" + val);
+        //     });
+        // }
+    } catch (criticalError) {
+        console.error("CRITICAL APP ERROR:", criticalError);
+        alert("애플리케이션 초기화 중 치명적 오류 발생:\n" + criticalError.message);
     }
-
-    if (btnCloseSeedModal) {
-        btnCloseSeedModal.addEventListener('click', () => seedModal.classList.add('hidden'));
-    }
-
-    // if (btnSaveSeed) {
-    //     btnSaveSeed.addEventListener('click', () => {
-    //         const val = document.getElementById('initCapital').value;
-    //         localStorage.setItem('userSeed', val);
-
-    //         // Trigger Cloud Save
-    //         if (window.saveToCloud) window.saveToCloud();
-
-    //         alert("초기 시드가 저장되었습니다 (클라우드 동기화 완료 ☁️): $" + val);
-    //     });
-    // }
-} catch (criticalError) {
-    console.error("CRITICAL APP ERROR:", criticalError);
-    alert("애플리케이션 초기화 중 치명적 오류 발생:\n" + criticalError.message);
-}
 });
 
 let lastSimulationParams = null; // Global store
