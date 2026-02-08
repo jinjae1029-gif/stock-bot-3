@@ -522,33 +522,32 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // SAFETY FALLBACK: If toggle is checked but button hidden, force show it after delay
-            // SAFETY FALLBACK: If toggle is checked but button hidden, force show it after delay
+            // SAFETY FALLBACK: Commented out for debugging (Potential Crash Source)
+            /*
             const forceShowButton = () => {
                 if (toggleMode && toggleMode.checked && btnUseDefaults) {
                     try {
-                        // Check if it's hidden by class or style
                         const style = window.getComputedStyle(btnUseDefaults);
                         if (btnUseDefaults.classList.contains('hidden') || style.display === 'none') {
-                            console.warn("[DEBUG] Safety Fallback: Force showing btnUseDefaults (Interval)");
+                            console.warn("[DEBUG] Safety Fallback: Force showing btnUseDefaults");
                             btnUseDefaults.classList.remove('hidden');
                             btnUseDefaults.style.setProperty('display', 'block', 'important');
                             btnUseDefaults.style.setProperty('visibility', 'visible', 'important');
                             btnUseDefaults.style.setProperty('opacity', '1', 'important');
                         }
                     } catch (e) {
-                        console.error("[DEBUG] Force Show Error:", e);
+                         console.error("[DEBUG] Force Show Error:", e);
                     }
                 }
             };
 
-            // Run fallback multiple times to ensure it catches any late UI updates
             setTimeout(forceShowButton, 500);
             setTimeout(forceShowButton, 1000);
             setTimeout(forceShowButton, 2000);
-            setTimeout(forceShowButton, 5000); // Extremely late check due to slow load?
-
-            // Also run it on click just in case
+            setTimeout(forceShowButton, 5000);
+            
             toggleMode.addEventListener('click', () => setTimeout(forceShowButton, 50));
+            */
         }
 
         // "Use" Button Handler (Legacy removed, using shared saveDefaults below)
