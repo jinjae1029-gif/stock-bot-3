@@ -27,7 +27,28 @@ function getUserId() {
 }
 
 // Global scope for accessibility
+// Global scope for accessibility
 window.saveToCloud = async () => {
+    // Wait for Auth if not ready
+    if (!auth.currentUser) {
+        console.log("Waiting for auth...");
+        try {
+            await new Promise((resolve, reject) => {
+                const unsubscribe = auth.onAuthStateChanged((user) => {
+                    unsubscribe();
+                    if (user) resolve(user);
+                    else reject(new Error("Auth failed"));
+                });
+                // Timeout fallback?
+                setTimeout(() => reject(new Error("Auth timeout")), 5000);
+            });
+        } catch (e) {
+            console.error("Auth wait failed:", e);
+            // Don't alert here, just fail silently or log
+            return;
+        }
+    }
+
     const uid = getUserId();
     const defaults = JSON.parse(localStorage.getItem('tradingSheetDefaults') || '{}');
     const injections = JSON.parse(localStorage.getItem('tradingSheetInjections') || '[]');
@@ -50,12 +71,16 @@ window.saveToCloud = async () => {
     try {
         await setDoc(doc(db, "users", uid), data);
         console.log(`Saved to Firestore: users/${uid}`);
-        // Optional: Toast or small indicator?
-        // alert("클라우드 저장 완료"); // Too spammy if auto save? 
-        // User asked for "Save to Cloud" button.
     } catch (e) {
         console.error("Cloud Save Error:", e);
-        alert(`클라우드 저장 실패: ${e.message}`);
+        // Only alert if it's NOT a permission error (or maybe just log it)
+        // User asked to be silent if success, but alert if fail.
+        // If permission error persists despite auth, we should know.
+        if (e.code === 'permission-denied') {
+            console.warn("Permission denied despite auth. Check Firestore Rules.");
+        } else {
+            alert(`클라우드 저장 실패: ${e.message}`);
+        }
     }
 };
 

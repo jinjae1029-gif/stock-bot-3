@@ -709,27 +709,27 @@ export const US_HOLIDAYS = new Set([
     "2026-01-01", "2026-01-19", "2026-02-16", "2026-04-03", "2026-05-25", "2026-06-19", "2026-07-03", "2026-09-07", "2026-11-26", "2026-12-25"
 ]);
 
-export function isBusinessDay(dateInput) {
-    const date = new Date(dateInput);
+export function isBusinessDay(dateStr) {
+    // console.log(`Checking Business Day: ${dateStr}`); // Too spammy
+    const date = new Date(dateStr);
     const day = date.getDay();
     if (day === 0 || day === 6) return false; // Weekend
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    const str = `${yyyy}-${mm}-${dd}`;
-    return !US_HOLIDAYS.has(str);
+    if (US_HOLIDAYS.has(dateStr)) {
+        console.log(`Skipping Holiday: ${dateStr}`);
+        return false;
+    }
+    return true;
 }
 
-export function getNextBusinessDay(dateInput, days = 1) {
-    let d = new Date(dateInput);
-    if (isNaN(d.getTime())) d = new Date();
+export function getNextBusinessDay(dateStr) {
+    let date = new Date(dateStr);
+    date.setDate(date.getDate() + 1);
+    let nextDateStr = date.toISOString().split('T')[0];
 
-    let added = 0;
-    while (added < days) {
-        d.setDate(d.getDate() + 1);
-        if (isBusinessDay(d)) {
-            added++;
-        }
+    while (!isBusinessDay(nextDateStr)) {
+        date.setDate(date.getDate() + 1);
+        nextDateStr = date.toISOString().split('T')[0];
     }
-    return d.toISOString().split('T')[0];
+    // console.log(`Next Business Day for ${dateStr} is ${nextDateStr}`);
+    return nextDateStr;
 }
