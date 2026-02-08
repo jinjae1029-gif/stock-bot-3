@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { SOXL_DATA, QQQ_DATA } from './js/data.js';
-import { runSimulation, generateOrderSheetData, calculateNettingOrders } from './js/logic.js';
+import { runSimulation, generateOrderSheetData, calculateNettingOrders, getNextBusinessDay } from './js/logic.js';
 import admin from 'firebase-admin';
 
 // --- CONFIGURATION ---
@@ -184,14 +184,7 @@ async function main() {
             const lastDataDate = lastData ? lastData.date : params.endDate;
 
             // Helper: Next Business Day
-            function getNextBusinessDay(dateStr) {
-                const date = new Date(dateStr);
-                const day = date.getDay();
-                const addDays = (day === 5) ? 3 : (day === 6 ? 2 : 1); // Fri->Mon, Sat->Mon, Else+1
-                const nextDate = new Date(date);
-                nextDate.setDate(date.getDate() + addDays);
-                return nextDate.toISOString().split('T')[0];
-            }
+            // Helper: Next Business Day (Imported from logic.js)
 
             const nextBizDate = getNextBusinessDay(lastDataDate);
 
