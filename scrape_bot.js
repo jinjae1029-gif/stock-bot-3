@@ -25,13 +25,10 @@ if (FIREBASE_CREDENTIALS) {
 async function getChatIdAndUid() {
     if (!db) return null;
     try {
-        // 1. Try finding by ID directly
         let doc = await db.collection('users').doc(TARGET_BOT_ID).get();
         if (doc.exists && doc.data().telegramChatId) {
             return { uid: TARGET_BOT_ID, chatId: doc.data().telegramChatId };
         }
-
-        // 2. Iterate all users to find one with a Chat ID
         const snapshot = await db.collection('users').get();
         let found = null;
         snapshot.forEach(doc => {
@@ -41,7 +38,6 @@ async function getChatIdAndUid() {
             }
         });
         return found;
-
     } catch (e) {
         console.error("Error fetching user:", e);
     }
@@ -89,7 +85,6 @@ async function sendTelegram(chatId, text) {
         // 4. Set LocalStorage (Simulate User)
         await page.evaluate((u) => {
             localStorage.setItem('firebaseUserId', u);
-            // PRE-SET SEED to bypass Modal if Cloud fails to load fast enough
             localStorage.setItem('userSeed', '10000');
         }, uid);
 
@@ -97,14 +92,14 @@ async function sendTelegram(chatId, text) {
         console.log("Reloading with User ID...");
         await page.reload({ waitUntil: 'networkidle0' });
 
-        // 6. Ensure "Trading Sheet" Mode (Toggle ON) -- MOVED UP because wait depends on it!
+        // 6. Ensure "Trading Sheet" Mode (Toggle ON)
         const toggle = await page.$('#toggleMode');
         if (toggle) {
             const isChecked = await (await toggle.getProperty('checked')).jsonValue();
             if (!isChecked) {
                 console.log("Switching to Trading Sheet Mode...");
                 await toggle.click();
-                await new Promise(r => setTimeout(r, 2000)); // Wait for mode switch
+                await new Promise(r => setTimeout(r, 2000));
             }
         }
 
@@ -117,6 +112,30 @@ async function sendTelegram(chatId, text) {
         await page.click('#btnOrderSheet');
         await page.waitForSelector('#orderSheetModal', { visible: true, timeout: 10000 });
 
+        // --- ADDED: CLICK BUTTONS LOGIC ---
+        console.log("Checking for Adjust/Netting Buttons...");
+
+        // 8-1. Try Click "목표매수가 조정" (If exists)
+        try {
+            const [adjustBtn] = await page.$x("//button[contains(., '목표매수가 조정')]");
+            if (adjustBtn) {
+                console.log("Clicking 'Adjust Buy Price'...");
+                await adjustBtn.click();
+                await new Promise(r => setTimeout(r, 1000)); // Wait for render
+            }
+        } catch (ignore) { }
+
+        // 8-2. Try Click "퉁치기 계산 (Netting)" (If exists)
+        try {
+            const [nettingBtn] = await page.$x("//button[contains(., '퉁치기')]");
+            if (nettingBtn) {
+                console.log("Clicking 'Netting'...");
+                await nettingBtn.click();
+                await new Promise(r => setTimeout(r, 1000)); // Wait for render
+            }
+        } catch (ignore) { }
+        // ----------------------------------
+
         // 9. Scrape Content
         const rawText = await page.$eval('#orderSheetModal .modal-content', el => el.innerText);
 
@@ -124,22 +143,11 @@ async function sendTelegram(chatId, text) {
         const extraData = await page.evaluate(() => {
             if (!window.lastFinalState) return null;
             const s = window.lastFinalState;
-
-            // Calc Total Holdings
             const totalQty = s.holdings.reduce((sum, h) => sum + h.quantity, 0);
-
-            // Calc Seed (Current + Pending)
             const seed = s.currentSeed + (s.pendingRebalance || 0);
-
-            // Total Asset
             const elAsset = document.getElementById('previewTotalAsset');
             const assetTxt = elAsset ? elAsset.innerText : "$0";
-
-            return {
-                qty: totalQty,
-                seed: Math.floor(seed),
-                asset: assetTxt
-            };
+            return { qty: totalQty, seed: Math.floor(seed), asset: assetTxt };
         });
 
         let cleanText = rawText
