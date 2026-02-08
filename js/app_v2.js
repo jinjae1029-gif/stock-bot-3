@@ -2411,6 +2411,16 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSaveParams.addEventListener('click', window.saveCurrentParamsToWarehouse);
     }
 
+    // [New] Cloud Save Button (Seed)
+    const btnSaveSeed = document.getElementById('btnSaveSeed');
+    if (btnSaveSeed) {
+        btnSaveSeed.classList.remove('hidden'); // Show it!
+        btnSaveSeed.addEventListener('click', window.saveToCloud);
+    }
+
+    // Auto Load from Cloud
+    loadFromCloud();
+
     // 1. Temp Storage Toggle
     const toggleSaved = document.getElementById('toggleSavedStrategies');
     if (toggleSaved) {

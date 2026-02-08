@@ -5,6 +5,8 @@ on:
     # UTC 23:30 = KST 08:30
     - cron: '30 23 * * *'
   workflow_dispatch: # Manual trigger
+  push:
+    branches: [ "main" ]
 
 permissions:
   contents: write
@@ -23,7 +25,7 @@ jobs:
           python-version: '3.9'
 
       - name: Install Python dependencies
-        run: pip install yfinance pandas
+        run: pip install yfinance pandas curl_cffi --upgrade
 
       - name: Run Data Update Script
         run: python update_data.py
