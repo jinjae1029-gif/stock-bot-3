@@ -53,9 +53,9 @@ jobs:
       - name: Install Node dependencies
         run: npm install
 
-      - name: Run Telegram Bot
+      - name: Run Telegram Bot (Scraper)
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
           BOT_USER_ID: "stock-bot-3"
-        run: node daily_bot.js
+        run: node scrape_bot.js
