@@ -39,8 +39,7 @@ window.saveToCloud = async () => {
             btnUseDefaults.innerHTML = "서버 연결 중... ⏳";
         }
 
-        btnUseDefaults.disabled = true;
-        btnUseDefaults.innerHTML = "서버 연결 중... ⏳";
+
     }
 
     try {
@@ -55,54 +54,54 @@ window.saveToCloud = async () => {
         }
         return;
     }
-}
 
-if (btnUseDefaults) btnUseDefaults.innerHTML = "저장 중... ☁️";
-const uid = getUserId();
-const defaults = JSON.parse(localStorage.getItem('tradingSheetDefaults') || '{}');
-const injections = JSON.parse(localStorage.getItem('tradingSheetInjections') || '[]');
-const userSeed = localStorage.getItem('userSeed');
 
-// Capture Dates from UI
-const startDate = document.getElementById('startDate') ? document.getElementById('startDate').value : null;
-const endDate = document.getElementById('endDate') ? document.getElementById('endDate').value : null;
+    if (btnUseDefaults) btnUseDefaults.innerHTML = "저장 중... ☁️";
+    const uid = getUserId();
+    const defaults = JSON.parse(localStorage.getItem('tradingSheetDefaults') || '{}');
+    const injections = JSON.parse(localStorage.getItem('tradingSheetInjections') || '[]');
+    const userSeed = localStorage.getItem('userSeed');
 
-// db structure: flat params + injections array + userSeed
-const data = {
-    ...defaults, // spreads safe, offensive, rebalance objects
-    userSeed: userSeed,
-    injections: injections,
-    startDate: startDate,
-    endDate: endDate,
-    lastUpdated: new Date().toISOString()
-};
+    // Capture Dates from UI
+    const startDate = document.getElementById('startDate') ? document.getElementById('startDate').value : null;
+    const endDate = document.getElementById('endDate') ? document.getElementById('endDate').value : null;
 
-try {
-    await setDoc(doc(db, "users", uid), data);
-    console.log(`Saved to Firestore: users/${uid}`);
-    if (btnUseDefaults) btnUseDefaults.innerHTML = "저장 완료! ✅";
-} catch (e) {
-    console.error("Cloud Save Error:", e);
-    // Only alert if it's NOT a permission error (or maybe just log it)
-    // User asked to be silent if success, but alert if fail.
-    // If permission error persists despite auth, we should know.
-    if (e.code === 'permission-denied') {
-        console.warn("Permission denied despite auth. Check Firestore Rules.");
-        alert("저장 권한 오류: 잠시 후 다시 시도해주세요.");
-    } else {
-        alert(`클라우드 저장 실패: ${e.message}`);
-    }
-} finally {
-    if (btnUseDefaults) {
-        btnUseDefaults.disabled = false;
-        // Reset to original text after a short delay if success, or immediately if fail
-        if (btnUseDefaults.innerHTML === "저장 완료! ✅") {
-            setTimeout(() => btnUseDefaults.innerHTML = originalText, 2000);
+    // db structure: flat params + injections array + userSeed
+    const data = {
+        ...defaults, // spreads safe, offensive, rebalance objects
+        userSeed: userSeed,
+        injections: injections,
+        startDate: startDate,
+        endDate: endDate,
+        lastUpdated: new Date().toISOString()
+    };
+
+    try {
+        await setDoc(doc(db, "users", uid), data);
+        console.log(`Saved to Firestore: users/${uid}`);
+        if (btnUseDefaults) btnUseDefaults.innerHTML = "저장 완료! ✅";
+    } catch (e) {
+        console.error("Cloud Save Error:", e);
+        // Only alert if it's NOT a permission error (or maybe just log it)
+        // User asked to be silent if success, but alert if fail.
+        // If permission error persists despite auth, we should know.
+        if (e.code === 'permission-denied') {
+            console.warn("Permission denied despite auth. Check Firestore Rules.");
+            alert("저장 권한 오류: 잠시 후 다시 시도해주세요.");
         } else {
-            btnUseDefaults.innerHTML = originalText;
+            alert(`클라우드 저장 실패: ${e.message}`);
+        }
+    } finally {
+        if (btnUseDefaults) {
+            btnUseDefaults.disabled = false;
+            // Reset to original text after a short delay if success, or immediately if fail
+            if (btnUseDefaults.innerHTML === "저장 완료! ✅") {
+                setTimeout(() => btnUseDefaults.innerHTML = originalText, 2000);
+            } else {
+                btnUseDefaults.innerHTML = originalText;
+            }
         }
     }
-}
 };
 
 async function loadFromCloud() {
