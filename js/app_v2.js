@@ -485,55 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // "Use" Button Handler
-        if (btnUseDefaults) {
-            btnUseDefaults.addEventListener('click', () => {
-                // Save current inputs as Defaults
-                // Also Save Current Seed as userSeed
-                const currentSeed = document.getElementById('initCapital').value;
-                if (currentSeed) localStorage.setItem('userSeed', currentSeed);
-
-                // 1. Gather inputs (Reuse helper or just read)
-                const getVal = (id) => parseFloat(document.getElementById(id).value);
-                const getWeights = (prefix) => {
-                    const container = document.getElementById(prefix === 'safe' ? 'safeWeights' : 'offWeights');
-                    if (!container) return [];
-                    const inputs = container.querySelectorAll('input');
-                    return Array.from(inputs).map(inp => parseFloat(inp.value) || 0);
-                };
-
-                const defaults = {
-                    safe: {
-                        buyLimit: getVal('safeBuyLimit'),
-                        target: getVal('safeTarget'),
-                        timeCut: getVal('safeTimeCut'),
-                        weights: getWeights('safe')
-                    },
-                    offensive: {
-                        buyLimit: getVal('offBuyLimit'),
-                        target: getVal('offTarget'),
-                        timeCut: getVal('offTimeCut'),
-                        weights: getWeights('off')
-                    },
-                    rebalance: {
-                        profitAdd: getVal('profitAdd'),
-                        lossSub: getVal('lossSub')
-                    }
-                };
-
-                localStorage.setItem('tradingSheetDefaults', JSON.stringify(defaults));
-
-                // Save Telegram Settings
-                localStorage.setItem('tgToken', document.getElementById('tgToken').value);
-                localStorage.setItem('tgChatId', document.getElementById('tgChatId').value);
-
-                alert("현재 설정(시드 포함)이 '매매 시트' 기본값으로 저장되었습니다.");
-
-                // Also run?
-                runBacktest();
-                saveToCloud(); // Save to Cloud
-            });
-        }
+        // "Use" Button Handler (Legacy removed, using shared saveDefaults below)
 
         // --- INJECTION LOGIC ---
         const btnInjSeed = document.getElementById('btnInjSeed');
@@ -791,7 +743,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentSeed = document.getElementById('initCapital').value;
             if (currentSeed) localStorage.setItem('userSeed', currentSeed);
 
-            alert("현재 설정(시드 포함, 시작일 포함)이 '기본값'으로 저장되었습니다.\n(클라우드 동기화 완료 ☁️)");
+            // [NEW] Save Telegram Settings as well
+            const tgToken = document.getElementById('tgToken') ? document.getElementById('tgToken').value : "";
+            const tgChatId = document.getElementById('tgChatId') ? document.getElementById('tgChatId').value : "";
+            if (tgToken) localStorage.setItem('tgToken', tgToken);
+            if (tgChatId) localStorage.setItem('tgChatId', tgChatId);
+
+            alert("현재 설정(시드, 텔레그램, 날짜 포함)이 '기본값'으로 저장되었습니다.\n(클라우드 동기화 완료 ☁️)");
 
             // Also run?
             runBacktest();
@@ -800,133 +758,139 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.saveToCloud) window.saveToCloud();
         };
 
-
-        // "Use" Button Handler (PC) - Ensure only ONE listener executes this logic
-        // The duplicate listener at L485 should be removed or ignored in favor of this one if this file is overwritten.
-        // Since I am replacing the LATTER part, this will define the function used.
-        // Users might have 2 listeners attached if I don't remove one. 
-        // L799 attaches saveDefaults.
+        // "Use" Button Handler
         if (btnUseDefaults) {
-            // Cleanest way: assign validation to onclick if possible, or just add new one.
-            // Since this replaces existing code block, it's fine.
-            // Note: The previous listener (L485) is still there in the full file.
-            // I should probably Comment Out the previous listener in a separate edit if I want to be clean.
-            // But for now, ensuring THIS function calls saveToCloud covers the case where THIS listener fires.
-            // If BOTH fire, both save. Better than NONE saving.
             btnUseDefaults.addEventListener('click', saveDefaults);
         }
+    };
 
-        // "Use" Button Handler (Mobile)
-        if (btnMobileUseDefaults) {
-            btnMobileUseDefaults.addEventListener('click', saveDefaults);
-        }
 
-        // Mobile Auto-Load Logic (If toggleMode is missing)
-        if (!toggleMode) {
-            // Assume Mobile Context: Load Defaults on Start
-            const defaults = localStorage.getItem('tradingSheetDefaults');
-
-            // Set Default Dates for Trading Sheet style (Baseline)
-            setTradingSheetDates();
-
-            if (defaults) {
-                try {
-                    const p = JSON.parse(defaults);
-                    // Safe
-                    document.getElementById('safeBuyLimit').value = p.safe.buyLimit;
-                    document.getElementById('safeTarget').value = p.safe.target;
-                    document.getElementById('safeTimeCut').value = p.safe.timeCut;
-                    // Offensive
-                    document.getElementById('offBuyLimit').value = p.offensive.buyLimit;
-                    document.getElementById('offTarget').value = p.offensive.target;
-                    document.getElementById('offTimeCut').value = p.offensive.timeCut;
-                    // Rebalance
-                    document.getElementById('profitAdd').value = p.rebalance.profitAdd;
-                    document.getElementById('lossSub').value = p.rebalance.lossSub;
-                    // Weights
-                    const setWeights = (prefix, valArr) => {
-                        const container = document.getElementById(prefix === 'safe' ? 'safeWeights' : 'offWeights');
-                        if (!container) return;
-                        const inputs = container.querySelectorAll('input');
-                        valArr.forEach((v, i) => { if (inputs[i]) inputs[i].value = v; });
-                    };
-                    if (p.safe.weights) setWeights('safe', p.safe.weights);
-                    if (p.offensive.weights) setWeights('off', p.offensive.weights);
-                    // Real Tier
-                    if (p.useRealTier !== undefined) {
-                        const rtToggle = document.getElementById('toggleRealTier');
-                        if (rtToggle) {
-                            rtToggle.checked = p.useRealTier;
-                            updateTierInputs();
-                        }
-                    }
-                    // Start Date Restoration
-                    if (p.startDate) {
-                        document.getElementById('startDate').value = p.startDate;
-                    }
-                } catch (e) { console.error("Mobile load defaults error", e); }
-            }
-
-            // Load Seed
-            const savedSeed = localStorage.getItem('userSeed');
-            if (savedSeed) {
-                document.getElementById('initCapital').value = savedSeed;
-            }
-        }
-
-        // Modal Logic (Keep existing, slightly modified trigger)
-        // Removed old btnTradingSheet listener.
-
-        if (btnSaveModalSeed) {
-            btnSaveModalSeed.addEventListener('click', () => {
-                const val = parseFloat(document.getElementById('modalSeedInput').value);
-                if (val) {
-                    localStorage.setItem('userSeed', val);
-                    document.getElementById('initCapital').value = val;
-
-                    // Set Date: Jan 1 to Today (Local Time correct)
-                    const now = new Date();
-                    const start = new Date(now.getFullYear(), 0, 1);
-                    // Fix Timezone offset for YYYY-MM-DD
-                    const toLocalISO = (d) => {
-                        const offset = d.getTimezoneOffset() * 60000;
-                        return new Date(d - offset).toISOString().split('T')[0];
-                    };
-
-                    document.getElementById('startDate').value = toLocalISO(start);
-                    document.getElementById('endDate').value = toLocalISO(now);
-
-                    seedModal.classList.add('hidden');
-                    // btnSaveSeed.classList.remove('hidden'); // HIDDEN per user request
-
-                    // Show Order Sheet Button
-                    const btnOrder = document.getElementById('btnOrderSheet');
-                    if (btnOrder) btnOrder.classList.remove('hidden');
-
-                    runBacktest();
-                }
-            });
-        }
-
-        if (btnCloseSeedModal) {
-            btnCloseSeedModal.addEventListener('click', () => seedModal.classList.add('hidden'));
-        }
-
-        // if (btnSaveSeed) {
-        //     btnSaveSeed.addEventListener('click', () => {
-        //         const val = document.getElementById('initCapital').value;
-        //         localStorage.setItem('userSeed', val);
-
-        //         // Trigger Cloud Save
-        //         if (window.saveToCloud) window.saveToCloud();
-
-        //         alert("초기 시드가 저장되었습니다 (클라우드 동기화 완료 ☁️): $" + val);
-        //     });
-        // }
-    } catch (criticalError) {
-        console.error("CRITICAL APP ERROR:", criticalError);
-        alert("애플리케이션 초기화 중 치명적 오류 발생:\n" + criticalError.message);
+    // "Use" Button Handler (PC) - Ensure only ONE listener executes this logic
+    // The duplicate listener at L485 should be removed or ignored in favor of this one if this file is overwritten.
+    // Since I am replacing the LATTER part, this will define the function used.
+    // Users might have 2 listeners attached if I don't remove one. 
+    // L799 attaches saveDefaults.
+    if (btnUseDefaults) {
+        // Cleanest way: assign validation to onclick if possible, or just add new one.
+        // Since this replaces existing code block, it's fine.
+        // Note: The previous listener (L485) is still there in the full file.
+        // I should probably Comment Out the previous listener in a separate edit if I want to be clean.
+        // But for now, ensuring THIS function calls saveToCloud covers the case where THIS listener fires.
+        // If BOTH fire, both save. Better than NONE saving.
+        btnUseDefaults.addEventListener('click', saveDefaults);
     }
+
+    // "Use" Button Handler (Mobile)
+    if (btnMobileUseDefaults) {
+        btnMobileUseDefaults.addEventListener('click', saveDefaults);
+    }
+
+    // Mobile Auto-Load Logic (If toggleMode is missing)
+    if (!toggleMode) {
+        // Assume Mobile Context: Load Defaults on Start
+        const defaults = localStorage.getItem('tradingSheetDefaults');
+
+        // Set Default Dates for Trading Sheet style (Baseline)
+        setTradingSheetDates();
+
+        if (defaults) {
+            try {
+                const p = JSON.parse(defaults);
+                // Safe
+                document.getElementById('safeBuyLimit').value = p.safe.buyLimit;
+                document.getElementById('safeTarget').value = p.safe.target;
+                document.getElementById('safeTimeCut').value = p.safe.timeCut;
+                // Offensive
+                document.getElementById('offBuyLimit').value = p.offensive.buyLimit;
+                document.getElementById('offTarget').value = p.offensive.target;
+                document.getElementById('offTimeCut').value = p.offensive.timeCut;
+                // Rebalance
+                document.getElementById('profitAdd').value = p.rebalance.profitAdd;
+                document.getElementById('lossSub').value = p.rebalance.lossSub;
+                // Weights
+                const setWeights = (prefix, valArr) => {
+                    const container = document.getElementById(prefix === 'safe' ? 'safeWeights' : 'offWeights');
+                    if (!container) return;
+                    const inputs = container.querySelectorAll('input');
+                    valArr.forEach((v, i) => { if (inputs[i]) inputs[i].value = v; });
+                };
+                if (p.safe.weights) setWeights('safe', p.safe.weights);
+                if (p.offensive.weights) setWeights('off', p.offensive.weights);
+                // Real Tier
+                if (p.useRealTier !== undefined) {
+                    const rtToggle = document.getElementById('toggleRealTier');
+                    if (rtToggle) {
+                        rtToggle.checked = p.useRealTier;
+                        updateTierInputs();
+                    }
+                }
+                // Start Date Restoration
+                if (p.startDate) {
+                    document.getElementById('startDate').value = p.startDate;
+                }
+            } catch (e) { console.error("Mobile load defaults error", e); }
+        }
+
+        // Load Seed
+        const savedSeed = localStorage.getItem('userSeed');
+        if (savedSeed) {
+            document.getElementById('initCapital').value = savedSeed;
+        }
+    }
+
+    // Modal Logic (Keep existing, slightly modified trigger)
+    // Removed old btnTradingSheet listener.
+
+    if (btnSaveModalSeed) {
+        btnSaveModalSeed.addEventListener('click', () => {
+            const val = parseFloat(document.getElementById('modalSeedInput').value);
+            if (val) {
+                localStorage.setItem('userSeed', val);
+                document.getElementById('initCapital').value = val;
+
+                // Set Date: Jan 1 to Today (Local Time correct)
+                const now = new Date();
+                const start = new Date(now.getFullYear(), 0, 1);
+                // Fix Timezone offset for YYYY-MM-DD
+                const toLocalISO = (d) => {
+                    const offset = d.getTimezoneOffset() * 60000;
+                    return new Date(d - offset).toISOString().split('T')[0];
+                };
+
+                document.getElementById('startDate').value = toLocalISO(start);
+                document.getElementById('endDate').value = toLocalISO(now);
+
+                seedModal.classList.add('hidden');
+                // btnSaveSeed.classList.remove('hidden'); // HIDDEN per user request
+
+                // Show Order Sheet Button
+                const btnOrder = document.getElementById('btnOrderSheet');
+                if (btnOrder) btnOrder.classList.remove('hidden');
+
+                runBacktest();
+            }
+        });
+    }
+
+    if (btnCloseSeedModal) {
+        btnCloseSeedModal.addEventListener('click', () => seedModal.classList.add('hidden'));
+    }
+
+    // if (btnSaveSeed) {
+    //     btnSaveSeed.addEventListener('click', () => {
+    //         const val = document.getElementById('initCapital').value;
+    //         localStorage.setItem('userSeed', val);
+
+    //         // Trigger Cloud Save
+    //         if (window.saveToCloud) window.saveToCloud();
+
+    //         alert("초기 시드가 저장되었습니다 (클라우드 동기화 완료 ☁️): $" + val);
+    //     });
+    // }
+} catch (criticalError) {
+    console.error("CRITICAL APP ERROR:", criticalError);
+    alert("애플리케이션 초기화 중 치명적 오류 발생:\n" + criticalError.message);
+}
 });
 
 let lastSimulationParams = null; // Global store
