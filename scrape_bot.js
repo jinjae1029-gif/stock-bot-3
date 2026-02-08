@@ -89,32 +89,33 @@ async function sendTelegram(chatId, text) {
         // 4. Set LocalStorage (Simulate User)
         await page.evaluate((u) => {
             localStorage.setItem('firebaseUserId', u);
+            // PRE-SET SEED to bypass Modal if Cloud fails to load fast enough
+            localStorage.setItem('userSeed', '10000');
         }, uid);
 
         // 5. Reload to apply ID and Load Data
         console.log("Reloading with User ID...");
         await page.reload({ waitUntil: 'networkidle0' });
 
-        // 6. Wait for simulation
-        console.log("Waiting for simulation...");
-        // CHANGED: totalAsset -> kpiFinal (Correct ID), added timeout 60s
-        await page.waitForFunction(() => window.lastFinalState && document.getElementById('kpiFinal'), { timeout: 60000 });
-
-        // 7. Ensure "Trading Sheet" Mode (Toggle ON)
+        // 6. Ensure "Trading Sheet" Mode (Toggle ON) -- MOVED UP because wait depends on it!
         const toggle = await page.$('#toggleMode');
         if (toggle) {
             const isChecked = await (await toggle.getProperty('checked')).jsonValue();
             if (!isChecked) {
                 console.log("Switching to Trading Sheet Mode...");
                 await toggle.click();
-                await new Promise(r => setTimeout(r, 2000));
+                await new Promise(r => setTimeout(r, 2000)); // Wait for mode switch
             }
         }
+
+        // 7. Wait for simulation
+        console.log("Waiting for simulation...");
+        await page.waitForFunction(() => window.lastFinalState && document.getElementById('kpiFinal'), { timeout: 60000 });
 
         // 8. Open Order Sheet Modal
         console.log("Opening Order Sheet...");
         await page.click('#btnOrderSheet');
-        await page.waitForSelector('#orderSheetModal', { visible: true, timeout: 5000 });
+        await page.waitForSelector('#orderSheetModal', { visible: true, timeout: 10000 });
 
         // 9. Scrape Content
         const rawText = await page.$eval('#orderSheetModal .modal-content', el => el.innerText);
