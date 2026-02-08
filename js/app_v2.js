@@ -80,9 +80,12 @@ const data = {
 try {
     await setDoc(doc(db, "users", uid), data);
     console.log(`Saved to Firestore: users/${uid}`);
-    alert("클라우드 저장 완료 ☁️");
+    if (btnUseDefaults) btnUseDefaults.innerHTML = "저장 완료! ✅";
 } catch (e) {
     console.error("Cloud Save Error:", e);
+    // Only alert if it's NOT a permission error (or maybe just log it)
+    // User asked to be silent if success, but alert if fail.
+    // If permission error persists despite auth, we should know.
     if (e.code === 'permission-denied') {
         console.warn("Permission denied despite auth. Check Firestore Rules.");
         alert("저장 권한 오류: 잠시 후 다시 시도해주세요.");
@@ -92,7 +95,12 @@ try {
 } finally {
     if (btnUseDefaults) {
         btnUseDefaults.disabled = false;
-        btnUseDefaults.innerHTML = originalText;
+        // Reset to original text after a short delay if success, or immediately if fail
+        if (btnUseDefaults.innerHTML === "저장 완료! ✅") {
+            setTimeout(() => btnUseDefaults.innerHTML = originalText, 2000);
+        } else {
+            btnUseDefaults.innerHTML = originalText;
+        }
     }
 }
 };
@@ -499,10 +507,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             toggleMode.addEventListener('change', handleModeChange);
 
-            // Initialization Check: Ensure UI matches Checkbox state on Reload
+            // Initial Check (Run only once on load)
+            // Debugging Logs
+            console.log("[DEBUG] Checking toggleMode state on load...");
+            console.log("[DEBUG] toggleMode:", toggleMode);
+            console.log("[DEBUG] btnUseDefaults:", btnUseDefaults);
+            console.log("[DEBUG] toggleMode.checked:", toggleMode.checked);
+
             if (toggleMode.checked) {
+                console.log("[DEBUG] Toggle is ON -> Calling handleModeChange");
                 handleModeChange({ target: toggleMode });
+            } else {
+                console.log("[DEBUG] Toggle is OFF");
             }
+
+            // SAFETY FALLBACK: If toggle is checked but button hidden, force show it after delay
+            setTimeout(() => {
+                if (toggleMode.checked && btnUseDefaults && btnUseDefaults.classList.contains('hidden')) {
+                    console.warn("[DEBUG] Safety Fallback: Force showing btnUseDefaults");
+                    btnUseDefaults.classList.remove('hidden');
+                    btnUseDefaults.style.display = 'block';
+                }
+            }, 500);
         }
 
         // "Use" Button Handler (Legacy removed, using shared saveDefaults below)
