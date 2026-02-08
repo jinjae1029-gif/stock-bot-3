@@ -32,20 +32,11 @@ window.saveToCloud = async () => {
     // Wait for Auth if not ready
     if (!auth.currentUser) {
         alert("서버 연결 중입니다. 잠시만 기다려주세요... ⏳");
-        console.log("Waiting for auth...");
         try {
-            await new Promise((resolve, reject) => {
-                const unsubscribe = auth.onAuthStateChanged((user) => {
-                    unsubscribe();
-                    if (user) resolve(user);
-                    else reject(new Error("Auth failed"));
-                });
-                // Timeout fallback?
-                setTimeout(() => reject(new Error("Auth timeout")), 5000);
-            });
+            await signInAnonymously(auth);
         } catch (e) {
             console.error("Auth wait failed:", e);
-            // Don't alert here, just fail silently or log
+            alert(`서버 연결 실패: ${e.message}`);
             return;
         }
     }
