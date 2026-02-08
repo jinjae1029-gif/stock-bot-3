@@ -179,7 +179,25 @@ async function main() {
             const nettingOrders = calculateNettingOrders(orderData);
 
             // Construct Message
-            const dateStr = orderData.lastDate; // Prediction Date
+            // Verify Data Integrity
+            const lastData = SOXL_DATA[SOXL_DATA.length - 1];
+            const lastDataDate = lastData ? lastData.date : params.endDate;
+
+            // Helper: Next Business Day
+            function getNextBusinessDay(dateStr) {
+                const date = new Date(dateStr);
+                const day = date.getDay();
+                const addDays = (day === 5) ? 3 : (day === 6 ? 2 : 1); // Fri->Mon, Sat->Mon, Else+1
+                const nextDate = new Date(date);
+                nextDate.setDate(date.getDate() + addDays);
+                return nextDate.toISOString().split('T')[0];
+            }
+
+            const nextBizDate = getNextBusinessDay(lastDataDate);
+
+            // Construct Message
+            // Use calculated Next Business Day instead of simulation end date
+            const dateStr = nextBizDate;
             const mode = orderData.mode;
             const modeIcon = mode === "Safe" ? "🛡️" : "⚔️";
             const modeKo = mode === "Safe" ? "안전 모드" : (mode === "Offensive" ? "공세 모드" : mode);
@@ -215,6 +233,7 @@ async function main() {
             msg += `현재 주식 보유량: ${totalQty}주 (${currentTier}T)\n`;
             msg += `이번 사이클 시드: $${seedDisp}\n`;
             msg += `총자산 (전일종가): $${finalBal}\n`;
+            msg += `기준 데이터: ${lastDataDate}\n`; // Helpful info
 
             await sendTelegram(chatId, msg);
             console.log(`  -> Sent to ${chatId}`);
