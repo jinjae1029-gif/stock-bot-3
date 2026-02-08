@@ -10,7 +10,47 @@ import { firebaseConfig } from './firebase_config.js';
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-signInAnonymously(auth).then(() => console.log("Firebase: Signed in anonymously")).catch((error) => console.error("Firebase Auth Error:", error));
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// --- STATUS INDICATOR UI ---
+const statusDiv = document.createElement('div');
+statusDiv.style.position = 'fixed';
+statusDiv.style.bottom = '10px';
+statusDiv.style.left = '10px';
+statusDiv.style.padding = '8px 12px';
+statusDiv.style.background = 'rgba(0,0,0,0.7)';
+statusDiv.style.color = 'white';
+statusDiv.style.borderRadius = '20px';
+statusDiv.style.fontSize = '12px';
+statusDiv.style.zIndex = '9999';
+statusDiv.style.display = 'flex';
+statusDiv.style.alignItems = 'center';
+statusDiv.style.gap = '8px';
+statusDiv.innerHTML = '<span style="width:10px; height:10px; background:red; border-radius:50%; display:inline-block;"></span> Offline';
+document.body.appendChild(statusDiv);
+
+function updateStatus(isOnline, msg) {
+    const color = isOnline ? '#22c55e' : '#ef4444'; // Green : Red
+    const text = isOnline ? 'Online' : (msg || 'Offline');
+    statusDiv.innerHTML = `<span style="width:10px; height:10px; background:${color}; border-radius:50%; display:inline-block; box-shadow: 0 0 8px ${color};"></span> ${text}`;
+}
+
+// Auto-Connect & Status Listener
+signInAnonymously(auth).catch((error) => {
+    console.error("Firebase Auth Error:", error);
+    updateStatus(false, "Auth Error");
+});
+
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        console.log("Firebase: Signed in as", user.uid);
+        updateStatus(true, "Connected");
+    } else {
+        updateStatus(false, "Disconnected");
+    }
+});
 
 // --- FIREBASE HELPERS ---
 // --- FIREBASE HELPERS ---
