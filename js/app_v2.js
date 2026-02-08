@@ -522,16 +522,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // SAFETY FALLBACK: If toggle is checked but button hidden, force show it after delay
+            // SAFETY FALLBACK: If toggle is checked but button hidden, force show it after delay
             const forceShowButton = () => {
-                if (toggleMode.checked && btnUseDefaults) {
-                    // Check if it's hidden by class or style
-                    const style = window.getComputedStyle(btnUseDefaults);
-                    if (btnUseDefaults.classList.contains('hidden') || style.display === 'none') {
-                        console.warn("[DEBUG] Safety Fallback: Force showing btnUseDefaults (Interval)");
-                        btnUseDefaults.classList.remove('hidden');
-                        btnUseDefaults.style.setProperty('display', 'block', 'important');
-                        btnUseDefaults.style.setProperty('visibility', 'visible', 'important');
-                        btnUseDefaults.style.setProperty('opacity', '1', 'important');
+                if (toggleMode && toggleMode.checked && btnUseDefaults) {
+                    try {
+                        // Check if it's hidden by class or style
+                        const style = window.getComputedStyle(btnUseDefaults);
+                        if (btnUseDefaults.classList.contains('hidden') || style.display === 'none') {
+                            console.warn("[DEBUG] Safety Fallback: Force showing btnUseDefaults (Interval)");
+                            btnUseDefaults.classList.remove('hidden');
+                            btnUseDefaults.style.setProperty('display', 'block', 'important');
+                            btnUseDefaults.style.setProperty('visibility', 'visible', 'important');
+                            btnUseDefaults.style.setProperty('opacity', '1', 'important');
+                        }
+                    } catch (e) {
+                        console.error("[DEBUG] Force Show Error:", e);
                     }
                 }
             };
