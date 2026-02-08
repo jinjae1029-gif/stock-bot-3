@@ -4,11 +4,32 @@ import os
 from datetime import datetime, time
 import pytz
 
+import requests
+import sys
+
 # 데이터 다운로드 (최대 기간) - Ticker.history 사용 (더 안정적)
-print("Fetching Data...")
-# auto_adjust=False ensures we get Open/High/Low/Close/Volume explicitly
-soxl = yf.Ticker("SOXL").history(start="2010-01-01", auto_adjust=False)
-qqq = yf.Ticker("QQQ").history(start="2010-01-01", auto_adjust=False)
+def fetch_data(ticker_symbol):
+    print(f"Fetching {ticker_symbol}...")
+    try:
+        session = requests.Session()
+        session.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        })
+        dat = yf.Ticker(ticker_symbol, session=session).history(start="2010-01-01", auto_adjust=False)
+        if dat.empty:
+            print(f"⚠️ Warning: {ticker_symbol} returned empty dataframe.")
+            return None
+        return dat
+    except Exception as e:
+        print(f"❌ Error fetching {ticker_symbol}: {e}")
+        return None
+
+soxl = fetch_data("SOXL")
+qqq = fetch_data("QQQ")
+
+if soxl is None or soxl.empty or qqq is None or qqq.empty:
+    print("❌ Critical Error: Data fetch failed. Exiting without update.")
+    sys.exit(1)
 
 def is_market_open_or_today_incomplete(last_date):
     """
